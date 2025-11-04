@@ -3,6 +3,7 @@
 from flask import Blueprint, request, jsonify
 from flask_socketio import emit, join_room, leave_room
 from ..game.engine import game_engine
+from ..game.models_v1 import APIValidator, enforce_api_contract
 from ..generators.question_generator import QuestionGeneratorManager
 from ..parsers.imessage_parser import iMessageParser
 from ..models import Database, Message
@@ -17,10 +18,20 @@ db = Database(str(Config.DATABASE_PATH))
 message_model = Message(db)
 
 @bp.route('/create', methods=['POST'])
+@enforce_api_contract
 def create_game():
     """Create a new game session."""
     data = request.get_json()
-    host_name = data.get('host_name', 'Anonymous Host')
+    
+    # 🔒 API Contract Validation
+    try:
+        host_name = APIValidator.validate_host_name(data.get('host_name'))
+    except ValueError as e:
+        return jsonify({
+            'success': False,
+            'message': str(e),
+            'error_code': 'INVALID_PAYLOAD'
+        }), 400
     
     try:
         # Get messages for question generation
@@ -68,16 +79,20 @@ def create_game():
         }), 500
 
 @bp.route('/join', methods=['POST'])
+@enforce_api_contract
 def join_game():
     """Join an existing game session."""
     data = request.get_json()
-    room_code = data.get('room_code', '').upper()
-    player_name = data.get('player_name', '')
     
-    if not room_code or not player_name:
+    # 🔒 API Contract Validation
+    try:
+        room_code = APIValidator.validate_room_code(data.get('room_code', ''))
+        player_name = APIValidator.validate_player_name(data.get('player_name', ''))
+    except ValueError as e:
         return jsonify({
             'success': False,
-            'message': 'Room code and player name are required'
+            'message': str(e),
+            'error_code': 'INVALID_PAYLOAD'
         }), 400
     
     player_id = game_engine.join_session(room_code, player_name)
@@ -143,16 +158,22 @@ def get_current_question(room_code):
         }), 404
 
 @bp.route('/answer', methods=['POST'])
+@enforce_api_contract
 def submit_answer():
     """Submit an answer for a player."""
     data = request.get_json()
-    player_id = data.get('player_id')
-    answer = data.get('answer')
     
-    if not player_id or not answer:
+    # 🔒 API Contract Validation
+    try:
+        player_id = APIValidator.validate_player_id(data.get('player_id', ''))
+        answer = data.get('answer', '').strip()
+        if not answer:
+            raise ValueError("Answer cannot be empty")
+    except ValueError as e:
         return jsonify({
             'success': False,
-            'message': 'Player ID and answer are required'
+            'message': str(e),
+            'error_code': 'INVALID_PAYLOAD'
         }), 400
     
     result = game_engine.submit_answer(player_id, answer)

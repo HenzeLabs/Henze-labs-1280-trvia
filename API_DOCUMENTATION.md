@@ -1,14 +1,16 @@
 # 1280 Trivia - API Documentation (v1-core-logic-stable)
 
-## 🔒 **CORE LOGIC LOCKED** 
+## 🔒 **CORE LOGIC LOCKED**
+
 Game engine and core logic are now **FROZEN** for stability. Only bug fixes allowed.
 
 ## 📋 **API Routes & Schemas**
 
 ### **Main Routes**
+
 ```
 GET  /              - Landing page
-GET  /host          - Host dashboard  
+GET  /host          - Host dashboard
 GET  /join          - Player join page
 GET  /player/<id>   - Player dashboard
 GET  /admin         - Admin panel
@@ -17,6 +19,7 @@ GET  /admin         - Admin panel
 ### **Game API Routes** (`/api/game/`)
 
 #### **Create Game**
+
 ```http
 POST /api/game/create
 Content-Type: application/json
@@ -34,6 +37,7 @@ Response:
 ```
 
 #### **Join Game**
+
 ```http
 POST /api/game/join
 Content-Type: application/json
@@ -47,12 +51,13 @@ Response:
 {
   "success": true,
   "player_id": "player_0_1234",
-  "room_code": "ABC123", 
+  "room_code": "ABC123",
   "message": "Joined game successfully!"
 }
 ```
 
 #### **Start Game**
+
 ```http
 POST /api/game/start/{room_code}
 
@@ -64,6 +69,7 @@ Response:
 ```
 
 #### **Get Current Question**
+
 ```http
 GET /api/game/question/{room_code}
 
@@ -72,7 +78,7 @@ Response:
   "question": {
     "id": 1,
     "category": "Receipts",
-    "question_type": "receipts", 
+    "question_type": "receipts",
     "question_text": "Who said: 'I can't believe I locked myself out again'?",
     "answers": ["Alice", "Bob", "Charlie", "Dana"],  // Shuffled
     "context": "1280 Group",
@@ -83,6 +89,7 @@ Response:
 ```
 
 #### **Submit Answer**
+
 ```http
 POST /api/game/answer
 Content-Type: application/json
@@ -103,6 +110,7 @@ Response:
 ```
 
 #### **Get Leaderboard**
+
 ```http
 GET /api/game/leaderboard/{room_code}
 
@@ -111,14 +119,14 @@ Response:
   "leaderboard": [
     {
       "rank": 1,
-      "name": "Alice", 
+      "name": "Alice",
       "score": 320,
       "answered_current": true
     },
     {
       "rank": 2,
       "name": "Bob",
-      "score": 160, 
+      "score": 160,
       "answered_current": false
     }
   ]
@@ -126,6 +134,7 @@ Response:
 ```
 
 #### **Next Question**
+
 ```http
 POST /api/game/next/{room_code}
 
@@ -144,6 +153,7 @@ Response:
 ```
 
 #### **Player Session Info**
+
 ```http
 GET /api/game/player-session/{player_id}
 
@@ -161,17 +171,19 @@ Response:
 ## 📦 **Core Data Models**
 
 ### **Player Object**
+
 ```python
 @dataclass
 class Player:
-    id: str                    # "player_0_1234" 
+    id: str                    # "player_0_1234"
     name: str                  # "Alice"
     score: int = 0             # Total points
     answered_current: bool     # Answered current question
     join_time: datetime        # When they joined
 ```
 
-### **Question Object** 
+### **Question Object**
+
 ```python
 @dataclass
 class Question:
@@ -179,20 +191,21 @@ class Question:
     category: str              # "Receipts", "Red Flags", etc
     question_type: str         # "receipts", "roast", "most_likely"
     question_text: str         # The actual question
-    correct_answer: str        # Correct answer 
+    correct_answer: str        # Correct answer
     wrong_answers: List[str]   # Wrong answer choices
-    context: str              # "1280 Group" 
+    context: str              # "1280 Group"
     difficulty: int = 1        # 1-5 difficulty
 ```
 
 ### **Game Session Object**
+
 ```python
-@dataclass 
+@dataclass
 class GameSession:
     room_code: str                    # "ABC123"
     host_name: str                    # "Host"
     status: str                       # "waiting", "playing", "finished"
-    players: Dict[str, Player]        # All players 
+    players: Dict[str, Player]        # All players
     questions: List[Question]         # All questions for game
     current_question_index: int = 0   # Current question
     question_time_limit: int = 30     # Seconds per question
@@ -202,11 +215,13 @@ class GameSession:
 ## ⚡ **WebSocket Events** (Next Phase)
 
 ### **Client → Server**
+
 - `join_room`: Join a game room
-- `leave_room`: Leave a game room  
+- `leave_room`: Leave a game room
 - `ping`: Connection test
 
 ### **Server → Client**
+
 - `game_started`: Game has begun
 - `new_question`: New question available
 - `player_list_updated`: Player joined/left

@@ -1,0 +1,489 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "1280 Trivia API Schema v1",
+  "description": "Immutable API schema for 1280 Trivia game - v1-api-contract-stable",
+  "version": "1.0.0",
+  
+  "definitions": {
+    "Player": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^player_\\d+_\\d{4}$",
+          "description": "Format: player_{index}_{random4digit}"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Player display name"
+        },
+        "score": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total points earned"
+        },
+        "answered_current": {
+          "type": "boolean",
+          "description": "Has answered current question"
+        },
+        "join_time": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When player joined session"
+        }
+      },
+      "required": ["id", "name", "score", "answered_current", "join_time"],
+      "additionalProperties": false
+    },
+    
+    "Question": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Sequential question ID"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["Receipts", "Red Flags", "Trivia", "Most Likely"],
+          "description": "Question category"
+        },
+        "question_type": {
+          "type": "string",
+          "enum": ["receipts", "roast", "most_likely", "trivia"],
+          "description": "Question type identifier"
+        },
+        "question_text": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The actual question text"
+        },
+        "correct_answer": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Correct answer choice"
+        },
+        "wrong_answers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 2,
+          "maxItems": 3,
+          "description": "Array of incorrect choices"
+        },
+        "context": {
+          "type": "string",
+          "description": "Source context"
+        },
+        "difficulty": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Difficulty level 1-5"
+        },
+        "answers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 3,
+          "maxItems": 4,
+          "description": "Shuffled answer choices (only in responses)"
+        },
+        "time_remaining": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 60,
+          "description": "Seconds left to answer (only in responses)"
+        }
+      },
+      "required": ["id", "category", "question_type", "question_text", "correct_answer", "wrong_answers"],
+      "additionalProperties": false
+    },
+    
+    "GameSession": {
+      "type": "object",
+      "properties": {
+        "room_code": {
+          "type": "string",
+          "pattern": "^[A-Z0-9]{6}$",
+          "description": "6-character alphanumeric room code"
+        },
+        "host_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Host display name"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["waiting", "playing", "finished"],
+          "description": "Current session status"
+        },
+        "players": {
+          "type": "object",
+          "patternProperties": {
+            "^player_\\d+_\\d{4}$": {
+              "$ref": "#/definitions/Player"
+            }
+          },
+          "description": "player_id → Player mapping"
+        },
+        "questions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Question"
+          },
+          "description": "All questions for this session"
+        },
+        "current_question_index": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Current question index (0-based)"
+        },
+        "question_time_limit": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 60,
+          "description": "Seconds per question"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Session creation timestamp"
+        }
+      },
+      "required": ["room_code", "host_name", "status", "players", "questions", "current_question_index", "question_time_limit", "created_at"],
+      "additionalProperties": false
+    },
+    
+    "SuccessResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "const": true
+        }
+      },
+      "required": ["success"]
+    },
+    
+    "ErrorResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "const": false
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable error description"
+        },
+        "error_code": {
+          "type": "string",
+          "enum": ["ROOM_NOT_FOUND", "GAME_IN_PROGRESS", "PLAYER_NOT_FOUND", "ALREADY_ANSWERED", "TIME_EXPIRED", "INVALID_PAYLOAD"],
+          "description": "Machine-readable error code"
+        }
+      },
+      "required": ["success", "message"],
+      "additionalProperties": false
+    }
+  },
+  
+  "requests": {
+    "CreateGameRequest": {
+      "type": "object",
+      "properties": {
+        "host_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Optional host name, defaults to 'Anonymous Host'"
+        }
+      },
+      "additionalProperties": false
+    },
+    
+    "JoinGameRequest": {
+      "type": "object",
+      "properties": {
+        "room_code": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9]{6}$",
+          "description": "6-character room code (case-insensitive)"
+        },
+        "player_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Player display name"
+        }
+      },
+      "required": ["room_code", "player_name"],
+      "additionalProperties": false
+    },
+    
+    "SubmitAnswerRequest": {
+      "type": "object",
+      "properties": {
+        "player_id": {
+          "type": "string",
+          "pattern": "^player_\\d+_\\d{4}$",
+          "description": "Player ID from join response"
+        },
+        "answer": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Selected answer text"
+        }
+      },
+      "required": ["player_id", "answer"],
+      "additionalProperties": false
+    }
+  },
+  
+  "responses": {
+    "CreateGameResponse": {
+      "allOf": [
+        {"$ref": "#/definitions/SuccessResponse"},
+        {
+          "type": "object",
+          "properties": {
+            "room_code": {
+              "type": "string",
+              "pattern": "^[A-Z0-9]{6}$",
+              "description": "6-character room code"
+            },
+            "message": {
+              "type": "string",
+              "pattern": "^Game created! Room code: [A-Z0-9]{6}$"
+            }
+          },
+          "required": ["room_code", "message"]
+        }
+      ]
+    },
+    
+    "JoinGameResponse": {
+      "allOf": [
+        {"$ref": "#/definitions/SuccessResponse"},
+        {
+          "type": "object",
+          "properties": {
+            "player_id": {
+              "type": "string",
+              "pattern": "^player_\\d+_\\d{4}$",
+              "description": "Unique player identifier"
+            },
+            "room_code": {
+              "type": "string",
+              "pattern": "^[A-Z0-9]{6}$",
+              "description": "Room code joined"
+            },
+            "message": {
+              "const": "Joined game successfully!"
+            }
+          },
+          "required": ["player_id", "room_code", "message"]
+        }
+      ]
+    },
+    
+    "GameActionResponse": {
+      "allOf": [
+        {"$ref": "#/definitions/SuccessResponse"},
+        {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Human-readable result message"
+            }
+          },
+          "required": ["message"]
+        }
+      ]
+    },
+    
+    "QuestionResponse": {
+      "type": "object",
+      "properties": {
+        "question": {
+          "$ref": "#/definitions/Question"
+        }
+      },
+      "required": ["question"],
+      "additionalProperties": false
+    },
+    
+    "SubmitAnswerResponse": {
+      "allOf": [
+        {"$ref": "#/definitions/SuccessResponse"},
+        {
+          "type": "object",
+          "properties": {
+            "is_correct": {
+              "type": "boolean",
+              "description": "Whether answer was correct"
+            },
+            "correct_answer": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The correct answer"
+            },
+            "points_earned": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Points awarded this question"
+            },
+            "total_score": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Player's total score"
+            }
+          },
+          "required": ["is_correct", "correct_answer", "points_earned", "total_score"]
+        }
+      ]
+    },
+    
+    "LeaderboardResponse": {
+      "type": "object",
+      "properties": {
+        "leaderboard": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "rank": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Current ranking (1-based)"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 50,
+                "description": "Player display name"
+              },
+              "score": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Total points"
+              },
+              "answered_current": {
+                "type": "boolean",
+                "description": "Has answered current question"
+              }
+            },
+            "required": ["rank", "name", "score", "answered_current"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["leaderboard"],
+      "additionalProperties": false
+    }
+  },
+  
+  "websocket_events": {
+    "client_to_server": {
+      "join_room": {
+        "type": "object",
+        "properties": {
+          "room_code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9]{6}$"
+          },
+          "player_id": {
+            "type": "string",
+            "pattern": "^player_\\d+_\\d{4}$"
+          }
+        },
+        "required": ["room_code"],
+        "additionalProperties": false
+      },
+      
+      "leave_room": {
+        "type": "object",
+        "properties": {
+          "room_code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9]{6}$"
+          }
+        },
+        "required": ["room_code"],
+        "additionalProperties": false
+      }
+    },
+    
+    "server_to_client": {
+      "player_list_updated": {
+        "type": "object",
+        "properties": {
+          "players": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^player_\\d+_\\d{4}$"
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 50
+                },
+                "score": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": ["id", "name", "score"],
+              "additionalProperties": false
+            }
+          },
+          "total_players": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 20
+          }
+        },
+        "required": ["players", "total_players"],
+        "additionalProperties": false
+      },
+      
+      "new_question": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "$ref": "#/definitions/Question"
+          }
+        },
+        "required": ["question"],
+        "additionalProperties": false
+      },
+      
+      "player_answered": {
+        "type": "object",
+        "properties": {
+          "player_id": {
+            "type": "string",
+            "pattern": "^player_\\d+_\\d{4}$"
+          },
+          "is_correct": {
+            "type": "boolean"
+          }
+        },
+        "required": ["player_id", "is_correct"],
+        "additionalProperties": false
+      }
+    }
+  }
+}
