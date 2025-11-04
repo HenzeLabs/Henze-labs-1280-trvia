@@ -8,6 +8,7 @@ import socketio
 import time
 import threading
 import json
+import requests
 from typing import Dict, List
 
 class WebSocketTester:
@@ -15,6 +16,7 @@ class WebSocketTester:
         self.base_url = base_url
         self.host_socket = None
         self.player_sockets = []
+        self.player_ids = {}  # Store actual player IDs from join responses
         self.events_received = {
             'host': [],
             'players': [[] for _ in range(3)]  # Track for 3 players
@@ -22,7 +24,7 @@ class WebSocketTester:
         
     def create_host_socket(self):
         """Create and configure host socket"""
-        self.host_socket = socketio.SimpleClient()
+        self.host_socket = socketio.Client()
         
         @self.host_socket.event
         def connect():
@@ -40,6 +42,7 @@ class WebSocketTester:
         
         try:
             self.host_socket.connect(self.base_url)
+            time.sleep(0.1)  # Give time for connection to establish
             return True
         except Exception as e:
             print(f"❌ Host socket connection failed: {e}")
@@ -47,7 +50,7 @@ class WebSocketTester:
     
     def create_player_socket(self, player_index: int, player_name: str):
         """Create and configure player socket"""
-        player_socket = socketio.SimpleClient()
+        player_socket = socketio.Client()
         
         @player_socket.event
         def connect():
@@ -76,6 +79,7 @@ class WebSocketTester:
         
         try:
             player_socket.connect(self.base_url)
+            time.sleep(0.1)  # Give time for connection to establish
             self.player_sockets.append((player_socket, player_name))
             return player_socket
         except Exception as e:
@@ -181,9 +185,12 @@ class WebSocketTester:
             # Each player picks a different answer
             answer = available_answers[i % len(available_answers)]
             
+            # Get the actual player ID from our stored IDs
+            player_id = self.player_ids.get(name, f'player_{i+1}')
+            
             try:
                 payload = {
-                    'player_id': f'player_{i+1}',
+                    'player_id': player_id,
                     'answer': answer
                 }
                 response = requests.post(f"{self.base_url}/api/game/answer", json=payload)
@@ -246,15 +253,15 @@ class WebSocketTester:
         print(f"✅ Created {len(self.player_sockets)} player sockets")
         
         # Create a game session for testing
-        import requests
         try:
-            response = requests.post(f"{self.base_url}/api/game/create")
+            response = requests.post(f"{self.base_url}/api/game/create", 
+                                   json={"host_name": "TestHost"})
             if response.status_code == 200:
                 data = response.json()
-                room_code = data['session']['room_code']
+                room_code = data['room_code']  # Updated API response format
                 print(f"✅ Test game created: {room_code}")
             else:
-                print("❌ Failed to create test game")
+                print(f"❌ Failed to create test game: {response.text}")
                 return False
         except Exception as e:
             print(f"❌ Game creation failed: {e}")
@@ -266,7 +273,10 @@ class WebSocketTester:
                 payload = {"room_code": room_code, "player_name": name}
                 response = requests.post(f"{self.base_url}/api/game/join", json=payload)
                 if response.status_code == 200:
-                    print(f"✅ {name} joined game session")
+                    data = response.json()
+                    player_id = data.get('player_id')
+                    self.player_ids[name] = player_id  # Store actual player ID
+                    print(f"✅ {name} joined game session (ID: {player_id})")
                 else:
                     print(f"❌ {name} failed to join game")
             except Exception as e:

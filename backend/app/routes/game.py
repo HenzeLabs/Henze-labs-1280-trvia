@@ -232,7 +232,7 @@ def on_join_room(data):
         if session:
             player_list = [{'id': p.id, 'name': p.name, 'score': p.score} 
                           for p in session.players.values()]
-            emit('player_list_updated', {'players': player_list}, room=room_code)
+            socketio.emit('player_list_updated', {'players': player_list}, room=room_code)
             print(f"Emitted player_list_updated to room {room_code}")
         else:
             print(f"No session found for room {room_code}")
@@ -249,7 +249,7 @@ def on_leave_room(data):
 @socketio.on('ping')
 def handle_ping():
     """Handle ping for connection testing."""
-    emit('pong')
+    socketio.emit('pong')
 
 @socketio.on('request_game_state')
 def handle_game_state_request(data):
@@ -260,7 +260,7 @@ def handle_game_state_request(data):
         question = game_engine.get_current_question(room_code)
         leaderboard = game_engine.get_leaderboard(room_code)
         
-        emit('game_state_update', {
+        socketio.emit('game_state_update', {
             'stats': stats,
             'question': question,
             'leaderboard': leaderboard
