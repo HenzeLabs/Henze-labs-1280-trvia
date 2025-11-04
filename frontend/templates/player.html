@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Player Dashboard - 1280 Trivia</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container mobile-friendly">
+      <div class="header">
+        <h1>🎮 Player Dashboard</h1>
+        <div class="player-info">
+          <span id="player-name-display"></span>
+          <span id="player-score">0 pts</span>
+        </div>
+      </div>
+
+      <!-- Waiting for Game -->
+      <div id="waiting-screen" class="section">
+        <h2>Waiting for Game to Start...</h2>
+        <div class="loading-spinner"></div>
+        <p>Room Code: <strong id="room-code-display"></strong></p>
+      </div>
+
+      <!-- Question Display -->
+      <div id="question-screen" class="section hidden">
+        <div class="question-info">
+          <div class="category-badge" id="question-category"></div>
+          <div class="timer-circle">
+            <span id="time-remaining">30</span>
+          </div>
+        </div>
+
+        <h2 id="question-text"></h2>
+
+        <div class="mobile-answers" id="mobile-answers">
+          <!-- Answer buttons will be populated here -->
+        </div>
+
+        <div id="answer-feedback" class="answer-feedback hidden">
+          <div id="feedback-message"></div>
+          <div id="points-earned"></div>
+        </div>
+      </div>
+
+      <!-- Waiting for Next Question -->
+      <div id="waiting-next" class="section hidden">
+        <h2>✅ Answer Submitted!</h2>
+        <p>Waiting for other players...</p>
+        <div id="last-answer-result"></div>
+      </div>
+
+      <!-- Game Results -->
+      <div id="final-results" class="section hidden">
+        <h2>🏆 Game Over!</h2>
+        <div id="final-rank"></div>
+        <div id="final-score"></div>
+        <div id="player-final-leaderboard"></div>
+      </div>
+
+      <!-- Current Game Status -->
+      <div class="status-bar">
+        <div class="status-item">
+          <span class="label">Question:</span>
+          <span id="current-question-num">-</span>/<span id="total-questions"
+            >-</span
+          >
+        </div>
+        <div class="status-item">
+          <span class="label">Score:</span>
+          <span id="current-score">0</span>
+        </div>
+        <div class="status-item">
+          <span class="label">Rank:</span>
+          <span id="current-rank">-</span>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.0/socket.io.js"></script>
+    <script>
+      const PLAYER_ID = "{{ player_id }}";
+    </script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/player.js') }}"></script>
+  </body>
+</html>

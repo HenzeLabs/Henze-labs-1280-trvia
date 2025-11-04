@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1280 Trivia</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏠 1280 Trivia</h1>
+            <p class="subtitle">Roast Your Friends Edition</p>
+        </div>
+        
+        <div class="main-menu">
+            <div class="menu-option">
+                <a href="/host" class="btn btn-primary btn-large">
+                    🎤 Host Game
+                </a>
+                <p>Create a new trivia game</p>
+            </div>
+            
+            <div class="menu-option">
+                <a href="/join" class="btn btn-secondary btn-large">
+                    📱 Join Game
+                </a>
+                <p>Join with room code</p>
+            </div>
+            
+            <div class="menu-option">
+                <a href="/admin" class="btn btn-accent btn-large">
+                    ⚙️ Admin Panel
+                </a>
+                <p>Manage questions & data</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Powered by your group chat receipts 📱💀</p>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
