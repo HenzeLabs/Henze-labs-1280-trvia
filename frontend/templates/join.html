@@ -4,15 +4,277 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Join Game - 1280 Trivia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap"
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/style.css') }}"
     />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+      :root {
+        --netflix-black: #0f0f0f;
+        --netflix-dark: #1a1a1a;
+        --netflix-red: #e50914;
+        --text-white: #ffffff;
+        --text-gray: #666666;
+        --surface-dark: rgba(255, 255, 255, 0.03);
+        --surface-hover: rgba(255, 255, 255, 0.08);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--netflix-black) 0%,
+          var(--netflix-dark) 100%
+        );
+        color: var(--text-white);
+        min-height: 100vh;
+        font-weight: 400;
+        overflow-x: hidden;
+      }
+
+      .container {
+        width: 100%;
+        min-height: 100vh;
+        position: relative;
+        padding: 20px 16px;
+        display: flex;
+        flex-direction: column;
+        max-width: 480px;
+        margin: 0 auto;
+      }
+
+      /* Header */
+      .header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding-top: 20px;
+      }
+
+      .header h1 {
+        font-family: "Bebas Neue", cursive;
+        font-size: 36px;
+        font-weight: 400;
+        margin-bottom: 16px;
+        letter-spacing: 1px;
+        color: var(--netflix-red);
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 24px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .btn-small {
+        background: var(--surface-hover);
+        color: var(--text-white);
+        border: 1px solid var(--surface-hover);
+        padding: 8px 16px;
+        font-size: 12px;
+      }
+
+      .btn-small:hover {
+        background: var(--surface-dark);
+        border-color: var(--text-gray);
+      }
+
+      /* Section */
+      .section {
+        background: var(--surface-dark);
+        border-radius: 16px;
+        padding: 32px 24px;
+        margin-bottom: 24px;
+        border: 1px solid var(--surface-hover);
+        backdrop-filter: blur(10px);
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .section h2 {
+        font-family: "Bebas Neue", cursive;
+        font-size: 28px;
+        margin-bottom: 24px;
+        letter-spacing: 0.5px;
+        text-align: center;
+      }
+
+      /* Form */
+      .form-group {
+        margin-bottom: 24px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-gray);
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 16px 20px;
+        border: 2px solid var(--surface-hover);
+        background: var(--surface-hover);
+        color: var(--text-white);
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: var(--netflix-red);
+        background: rgba(229, 9, 20, 0.1);
+      }
+
+      .form-group input::placeholder {
+        color: var(--text-gray);
+      }
+
+      /* Primary Button */
+      .btn-primary {
+        background: var(--netflix-red);
+        color: white;
+        border: 2px solid var(--netflix-red);
+        width: 100%;
+        padding: 18px 24px;
+        font-size: 16px;
+        font-weight: 700;
+        margin-top: 8px;
+        border-radius: 12px;
+        text-transform: none;
+        letter-spacing: 0;
+      }
+
+      .btn-primary:hover,
+      .btn-primary:active {
+        background: #b8070f;
+        border-color: #b8070f;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(229, 9, 20, 0.3);
+      }
+
+      .btn-primary:disabled {
+        background: var(--text-gray);
+        border-color: var(--text-gray);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      /* Error Message */
+      .error-message {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid #ef4444;
+        color: #ef4444;
+        padding: 16px;
+        border-radius: 8px;
+        margin-top: 16px;
+        font-weight: 500;
+        text-align: center;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      /* Loading Spinner */
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid var(--surface-hover);
+        border-top: 3px solid var(--netflix-red);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Responsive Design */
+      @media (max-width: 480px) {
+        .container {
+          padding: 16px 12px;
+        }
+
+        .header h1 {
+          font-size: 32px;
+        }
+
+        .section {
+          padding: 24px 20px;
+        }
+
+        .section h2 {
+          font-size: 24px;
+        }
+
+        .form-group input {
+          padding: 14px 16px;
+          font-size: 16px;
+        }
+
+        .btn-primary {
+          padding: 16px 20px;
+        }
+      }
+
+      /* Touch-friendly improvements */
+      @media (hover: none) and (pointer: coarse) {
+        .form-group input {
+          min-height: 56px;
+        }
+
+        .btn-primary {
+          min-height: 56px;
+        }
+      }
+
+      /* Auto-focus input styling */
+      input[type="text"]:focus {
+        border-color: var(--netflix-red);
+        box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.1);
+      }
+    </style>
   </head>
   <body>
     <div class="container">
       <div class="header">
-        <h1>📱 Join Game</h1>
+        <h1>Join Game</h1>
         <a href="/" class="btn btn-small">← Back</a>
       </div>
 
@@ -24,6 +286,8 @@
           <input
             type="text"
             id="room-code"
+            name="room_code"
+            data-testid="room-code-input"
             placeholder="6-digit code"
             maxlength="6"
           />
@@ -31,12 +295,12 @@
 
         <div class="form-group">
           <label for="player-name">Your Name:</label>
-          <input type="text" id="player-name" placeholder="Enter your name" />
+          <input type="text" id="player-name" name="player_name" data-testid="player-name-input" placeholder="Enter your name" />
         </div>
 
-        <button id="join-game-btn" class="btn btn-primary">🎮 Join Game</button>
+        <button id="join-game-btn" data-testid="join-game-btn" class="btn btn-primary">Join Game</button>
 
-        <div id="join-error" class="error-message hidden"></div>
+        <div id="join-error" data-testid="join-error" class="error-message hidden"></div>
       </div>
 
       <div id="joining-game" class="section hidden">

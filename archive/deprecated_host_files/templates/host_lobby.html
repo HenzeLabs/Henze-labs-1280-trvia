@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game Lobby - 1280 Trivia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+      :root {
+        --netflix-black: #0f0f0f;
+        --netflix-dark: #1a1a1a;
+        --netflix-red: #e50914;
+        --text-white: #ffffff;
+        --text-gray: #666666;
+        --surface-dark: rgba(255, 255, 255, 0.03);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--netflix-black) 0%,
+          var(--netflix-dark) 100%
+        );
+        color: var(--text-white);
+        min-height: 100vh;
+        font-weight: 400;
+        overflow-x: hidden;
+      }
+
+      .container {
+        max-width: 1600px;
+        margin: 0 auto;
+        min-height: 100vh;
+        padding: 60px 80px 120px;
+      }
+
+      /* Header */
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 60px;
+      }
+
+      .header h1 {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 42px;
+        font-weight: 400;
+        letter-spacing: 4px;
+        color: var(--netflix-red);
+        text-transform: uppercase;
+      }
+
+      .btn {
+        padding: 8px 16px;
+        background: var(--surface-dark);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        color: var(--text-white);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn:hover {
+        background: var(--netflix-red);
+        border-color: var(--netflix-red);
+      }
+
+      .btn-success {
+        background: var(--netflix-red);
+        border-color: var(--netflix-red);
+        padding: 20px 48px;
+        font-size: 18px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .btn-success:hover:not(:disabled) {
+        background: #c40812;
+        transform: translateY(-2px);
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      /* Game Lobby */
+      .lobby-container {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 80px;
+        align-items: start;
+      }
+
+      .room-code-display {
+        background: var(--surface-dark);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 60px;
+        text-align: center;
+        margin-bottom: 48px;
+        backdrop-filter: blur(10px);
+      }
+
+      .room-code-display h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-gray);
+        margin-bottom: 24px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .room-code-display span {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 96px;
+        font-weight: 400;
+        color: var(--netflix-red);
+        letter-spacing: 12px;
+        display: block;
+        margin: 24px 0;
+      }
+
+      .room-code-display p {
+        font-size: 18px;
+        color: var(--text-gray);
+        margin-top: 24px;
+      }
+
+      .players-list h4 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-white);
+        margin-bottom: 24px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      #players-ul {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 48px;
+      }
+
+      #players-ul li {
+        background: var(--surface-dark);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        padding: 20px 24px;
+        margin-bottom: 12px;
+        font-size: 18px;
+        font-weight: 500;
+        backdrop-filter: blur(10px);
+        transition: all 0.2s ease;
+      }
+
+      #players-ul li:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateX(4px);
+      }
+
+      /* Sidebar */
+      .sidebar {
+        background: var(--surface-dark);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 40px;
+        position: sticky;
+        top: 60px;
+        backdrop-filter: blur(10px);
+      }
+
+      .sidebar h3 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-white);
+        margin-bottom: 32px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-align: center;
+      }
+
+      /* Responsive */
+      @media (max-width: 1200px) {
+        .lobby-container {
+          grid-template-columns: 1fr;
+          gap: 40px;
+        }
+
+        .sidebar {
+          position: static;
+        }
+      }
+
+      /* Roast Bar */
+      .roast-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 80px;
+        background: var(--netflix-black);
+        border-top: 2px solid var(--netflix-red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.8);
+      }
+
+      .roast-text {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-white);
+        text-align: center;
+        max-width: 90%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>1280 Trivia</h1>
+        <a href="/" class="btn">← Back to Home</a>
+      </div>
+
+      <div class="lobby-container">
+        <div>
+          <h2
+            style="
+              font-family: 'Bebas Neue', sans-serif;
+              font-size: 72px;
+              margin-bottom: 48px;
+              letter-spacing: 3px;
+              color: var(--text-white);
+            "
+          >
+            Game Lobby
+          </h2>
+
+          <div class="room-code-display">
+            <h3>Room Code</h3>
+            <span id="room-code">----</span>
+            <p>Players join at: <strong>localhost:5001/join</strong></p>
+            <a
+              id="tv-view-link"
+              href="#"
+              target="_blank"
+              class="btn"
+              style="
+                margin-top: 16px;
+                background: var(--netflix-red);
+                border-color: var(--netflix-red);
+              "
+            >
+              Open TV View
+            </a>
+          </div>
+
+          <div class="players-list">
+            <h4>Players Joined (<span id="player-count">0</span>):</h4>
+            <ul id="players-ul"></ul>
+          </div>
+
+          <button id="start-game-btn" class="btn btn-success" disabled>
+            Start Game
+          </button>
+        </div>
+
+        <!-- Current Leaderboard Sidebar -->
+        <div class="sidebar">
+          <h3>Damage Report</h3>
+          <div id="current-leaderboard"></div>
+        </div>
+      </div>
+
+      <!-- Roast Bar -->
+      <div class="roast-bar">
+        <div class="roast-text" id="roastText">
+          Waiting for players to join...
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.0/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/host_lobby.js') }}"></script>
+  </body>
+</html>

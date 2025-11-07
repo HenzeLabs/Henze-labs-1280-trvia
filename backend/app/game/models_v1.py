@@ -76,8 +76,8 @@ class Question:
     difficulty: int = 1
     
     # Immutable category constraints
-    VALID_CATEGORIES = {"Receipts", "Red Flags", "Trivia", "Most Likely"}
-    VALID_TYPES = {"receipts", "roast", "most_likely", "trivia"}
+    VALID_CATEGORIES = {"Receipts", "Red Flags", "Trivia", "Most Likely", "WHO'S MOST LIKELY"}
+    VALID_TYPES = {"receipts", "roast", "most_likely", "trivia", "poll"}
     
     def __post_init__(self):
         """Validate immutable contract constraints."""
@@ -237,6 +237,9 @@ class APIValidator:
 
 def enforce_api_contract(func):
     """Decorator to enforce API contract validation on responses."""
+    from functools import wraps
+    
+    @wraps(func)
     def wrapper(*args, **kwargs):
         try:
             result = func(*args, **kwargs)

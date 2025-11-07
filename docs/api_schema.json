@@ -3,7 +3,7 @@
   "title": "1280 Trivia API Schema v1",
   "description": "Immutable API schema for 1280 Trivia game - v1-api-contract-stable",
   "version": "1.0.0",
-  
+
   "definitions": {
     "Player": {
       "type": "object",
@@ -37,7 +37,7 @@
       "required": ["id", "name", "score", "answered_current", "join_time"],
       "additionalProperties": false
     },
-    
+
     "Question": {
       "type": "object",
       "properties": {
@@ -102,10 +102,17 @@
           "description": "Seconds left to answer (only in responses)"
         }
       },
-      "required": ["id", "category", "question_type", "question_text", "correct_answer", "wrong_answers"],
+      "required": [
+        "id",
+        "category",
+        "question_type",
+        "question_text",
+        "correct_answer",
+        "wrong_answers"
+      ],
       "additionalProperties": false
     },
-    
+
     "GameSession": {
       "type": "object",
       "properties": {
@@ -158,10 +165,19 @@
           "description": "Session creation timestamp"
         }
       },
-      "required": ["room_code", "host_name", "status", "players", "questions", "current_question_index", "question_time_limit", "created_at"],
+      "required": [
+        "room_code",
+        "host_name",
+        "status",
+        "players",
+        "questions",
+        "current_question_index",
+        "question_time_limit",
+        "created_at"
+      ],
       "additionalProperties": false
     },
-    
+
     "SuccessResponse": {
       "type": "object",
       "properties": {
@@ -171,7 +187,7 @@
       },
       "required": ["success"]
     },
-    
+
     "ErrorResponse": {
       "type": "object",
       "properties": {
@@ -185,7 +201,14 @@
         },
         "error_code": {
           "type": "string",
-          "enum": ["ROOM_NOT_FOUND", "GAME_IN_PROGRESS", "PLAYER_NOT_FOUND", "ALREADY_ANSWERED", "TIME_EXPIRED", "INVALID_PAYLOAD"],
+          "enum": [
+            "ROOM_NOT_FOUND",
+            "GAME_IN_PROGRESS",
+            "PLAYER_NOT_FOUND",
+            "ALREADY_ANSWERED",
+            "TIME_EXPIRED",
+            "INVALID_PAYLOAD"
+          ],
           "description": "Machine-readable error code"
         }
       },
@@ -193,7 +216,7 @@
       "additionalProperties": false
     }
   },
-  
+
   "requests": {
     "CreateGameRequest": {
       "type": "object",
@@ -207,7 +230,7 @@
       },
       "additionalProperties": false
     },
-    
+
     "JoinGameRequest": {
       "type": "object",
       "properties": {
@@ -226,7 +249,7 @@
       "required": ["room_code", "player_name"],
       "additionalProperties": false
     },
-    
+
     "SubmitAnswerRequest": {
       "type": "object",
       "properties": {
@@ -245,11 +268,11 @@
       "additionalProperties": false
     }
   },
-  
+
   "responses": {
     "CreateGameResponse": {
       "allOf": [
-        {"$ref": "#/definitions/SuccessResponse"},
+        { "$ref": "#/definitions/SuccessResponse" },
         {
           "type": "object",
           "properties": {
@@ -267,10 +290,10 @@
         }
       ]
     },
-    
+
     "JoinGameResponse": {
       "allOf": [
-        {"$ref": "#/definitions/SuccessResponse"},
+        { "$ref": "#/definitions/SuccessResponse" },
         {
           "type": "object",
           "properties": {
@@ -292,10 +315,10 @@
         }
       ]
     },
-    
+
     "GameActionResponse": {
       "allOf": [
-        {"$ref": "#/definitions/SuccessResponse"},
+        { "$ref": "#/definitions/SuccessResponse" },
         {
           "type": "object",
           "properties": {
@@ -309,7 +332,7 @@
         }
       ]
     },
-    
+
     "QuestionResponse": {
       "type": "object",
       "properties": {
@@ -320,10 +343,10 @@
       "required": ["question"],
       "additionalProperties": false
     },
-    
+
     "SubmitAnswerResponse": {
       "allOf": [
-        {"$ref": "#/definitions/SuccessResponse"},
+        { "$ref": "#/definitions/SuccessResponse" },
         {
           "type": "object",
           "properties": {
@@ -347,11 +370,16 @@
               "description": "Player's total score"
             }
           },
-          "required": ["is_correct", "correct_answer", "points_earned", "total_score"]
+          "required": [
+            "is_correct",
+            "correct_answer",
+            "points_earned",
+            "total_score"
+          ]
         }
       ]
     },
-    
+
     "LeaderboardResponse": {
       "type": "object",
       "properties": {
@@ -390,7 +418,7 @@
       "additionalProperties": false
     }
   },
-  
+
   "websocket_events": {
     "client_to_server": {
       "join_room": {
@@ -408,7 +436,7 @@
         "required": ["room_code"],
         "additionalProperties": false
       },
-      
+
       "leave_room": {
         "type": "object",
         "properties": {
@@ -421,7 +449,7 @@
         "additionalProperties": false
       }
     },
-    
+
     "server_to_client": {
       "player_list_updated": {
         "type": "object",
@@ -458,7 +486,7 @@
         "required": ["players", "total_players"],
         "additionalProperties": false
       },
-      
+
       "new_question": {
         "type": "object",
         "properties": {
@@ -469,7 +497,7 @@
         "required": ["question"],
         "additionalProperties": false
       },
-      
+
       "player_answered": {
         "type": "object",
         "properties": {

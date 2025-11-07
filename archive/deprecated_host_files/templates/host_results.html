@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game Results - 1280 Trivia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+      :root {
+        --netflix-black: #0f0f0f;
+        --netflix-dark: #1a1a1a;
+        --netflix-red: #e50914;
+        --netflix-gold: #ffc107;
+        --netflix-silver: #c0c0c0;
+        --netflix-bronze: #cd7f32;
+        --text-white: #ffffff;
+        --text-gray: #666666;
+        --surface-dark: rgba(255, 255, 255, 0.03);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--netflix-black) 0%,
+          var(--netflix-dark) 100%
+        );
+        color: var(--text-white);
+        min-height: 100vh;
+        font-weight: 400;
+        overflow-x: hidden;
+      }
+
+      .container {
+        width: 100%;
+        min-height: 100vh;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .results-header {
+        text-align: center;
+        margin-bottom: 60px;
+        animation: fadeInDown 0.8s ease-out;
+      }
+
+      .results-header h1 {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 64px;
+        font-weight: 400;
+        letter-spacing: 5px;
+        margin-bottom: 10px;
+        background: linear-gradient(90deg, var(--netflix-red), #ff6b6b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .room-code {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 24px;
+        letter-spacing: 4px;
+        color: var(--text-gray);
+      }
+
+      .podium-container {
+        display: flex;
+        gap: 30px;
+        justify-content: center;
+        align-items: flex-end;
+        margin-bottom: 60px;
+        animation: fadeInUp 1s ease-out 0.3s both;
+      }
+
+      .podium-position {
+        text-align: center;
+        min-width: 180px;
+      }
+
+      .podium-rank {
+        font-size: 48px;
+        margin-bottom: 10px;
+      }
+
+      .podium-player {
+        background: var(--surface-dark);
+        border-radius: 16px;
+        padding: 30px 20px;
+        margin-bottom: 15px;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+      }
+
+      .podium-position.rank-1 .podium-player {
+        border-color: var(--netflix-gold);
+        box-shadow: 0 0 30px rgba(255, 193, 7, 0.3);
+        transform: scale(1.1);
+      }
+
+      .podium-position.rank-2 .podium-player {
+        border-color: var(--netflix-silver);
+      }
+
+      .podium-position.rank-3 .podium-player {
+        border-color: var(--netflix-bronze);
+      }
+
+      .podium-player-name {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 28px;
+        letter-spacing: 2px;
+        margin-bottom: 10px;
+      }
+
+      .podium-player-score {
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--netflix-red);
+      }
+
+      .podium-base {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+        border-radius: 8px;
+        padding: 20px;
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 20px;
+        letter-spacing: 2px;
+      }
+
+      .podium-position.rank-1 .podium-base {
+        height: 120px;
+        background: linear-gradient(180deg, rgba(255, 193, 7, 0.2), rgba(255, 193, 7, 0.05));
+      }
+
+      .podium-position.rank-2 .podium-base {
+        height: 90px;
+        background: linear-gradient(180deg, rgba(192, 192, 192, 0.2), rgba(192, 192, 192, 0.05));
+      }
+
+      .podium-position.rank-3 .podium-base {
+        height: 60px;
+        background: linear-gradient(180deg, rgba(205, 127, 50, 0.2), rgba(205, 127, 50, 0.05));
+      }
+
+      .full-leaderboard {
+        width: 100%;
+        max-width: 800px;
+        margin-bottom: 40px;
+        animation: fadeIn 1s ease-out 0.6s both;
+      }
+
+      .leaderboard-title {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 32px;
+        letter-spacing: 3px;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .leaderboard-item {
+        background: var(--surface-dark);
+        border-radius: 12px;
+        padding: 20px 30px;
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+      }
+
+      .leaderboard-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        transform: translateX(5px);
+      }
+
+      .leaderboard-item.rank-1 {
+        border-color: var(--netflix-gold);
+      }
+
+      .leaderboard-item.rank-2 {
+        border-color: var(--netflix-silver);
+      }
+
+      .leaderboard-item.rank-3 {
+        border-color: var(--netflix-bronze);
+      }
+
+      .player-info {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .player-rank {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 32px;
+        width: 40px;
+        color: var(--text-gray);
+      }
+
+      .player-name {
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      .player-score {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--netflix-red);
+      }
+
+      .game-stats {
+        background: var(--surface-dark);
+        border-radius: 16px;
+        padding: 30px;
+        width: 100%;
+        max-width: 800px;
+        margin-bottom: 30px;
+        animation: fadeIn 1s ease-out 0.9s both;
+      }
+
+      .game-stats h3 {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 28px;
+        letter-spacing: 2px;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+      }
+
+      .stat-item {
+        text-align: center;
+      }
+
+      .stat-value {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 48px;
+        color: var(--netflix-red);
+        letter-spacing: 2px;
+      }
+
+      .stat-label {
+        font-size: 14px;
+        color: var(--text-gray);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .actions {
+        display: flex;
+        gap: 20px;
+        margin-top: 20px;
+        animation: fadeIn 1s ease-out 1.2s both;
+      }
+
+      .btn {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 20px;
+        letter-spacing: 2px;
+        padding: 15px 40px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+      }
+
+      .btn-primary {
+        background: var(--netflix-red);
+        color: var(--text-white);
+      }
+
+      .btn-primary:hover {
+        background: #ff0a16;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(229, 9, 20, 0.4);
+      }
+
+      .btn-secondary {
+        background: var(--surface-dark);
+        color: var(--text-white);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.4);
+      }
+
+      .roast-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(90deg, var(--netflix-red), #ff6b6b);
+        padding: 15px;
+        text-align: center;
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 18px;
+        letter-spacing: 2px;
+        animation: slideInUp 0.5s ease-out;
+      }
+
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideInUp {
+        from {
+          transform: translateY(100%);
+        }
+        to {
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="results-header">
+        <h1>GAME OVER</h1>
+        <div class="room-code">Room: <span id="room-code-display">------</span></div>
+      </div>
+
+      <div class="podium-container" id="podium">
+        <!-- Top 3 will be rendered here -->
+      </div>
+
+      <div class="full-leaderboard">
+        <div class="leaderboard-title">FINAL STANDINGS</div>
+        <div id="full-leaderboard">
+          <!-- All players rendered here -->
+        </div>
+      </div>
+
+      <div class="game-stats">
+        <h3>Game Statistics</h3>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value" id="total-players">0</div>
+            <div class="stat-label">Players</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="total-questions">0</div>
+            <div class="stat-label">Questions</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="game-duration">0</div>
+            <div class="stat-label">Minutes</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="avg-score">0</div>
+            <div class="stat-label">Avg Score</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a href="/host" class="btn btn-primary">New Game</a>
+        <button class="btn btn-secondary" onclick="window.print()">Save Results</button>
+      </div>
+    </div>
+
+    <div class="roast-bar" id="roast-bar">
+      Friendship destruction level: MAXIMUM
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/host_results.js') }}"></script>
+  </body>
+</html>

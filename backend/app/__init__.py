@@ -18,9 +18,8 @@ def create_app(config_class=Config):
     socketio.init_app(app)
     
     # Register blueprints
-    from .routes import main, game, admin
+    from .routes import main, game
     app.register_blueprint(main.bp)
     app.register_blueprint(game.bp)
-    app.register_blueprint(admin.bp)
     
     return app

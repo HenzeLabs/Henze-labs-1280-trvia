@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>1280 Trivia - TV View</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+      :root {
+        --netflix-black: #0f0f0f;
+        --netflix-dark: #1a1a1a;
+        --netflix-red: #e50914;
+        --text-white: #ffffff;
+        --text-gray: #808080;
+        --surface-dark: rgba(255, 255, 255, 0.03);
+        --surface-hover: rgba(255, 255, 255, 0.08);
+      }
+
+      /* TV-optimized full-screen styling - NO SCROLLING */
+      body {
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(
+          135deg,
+          var(--netflix-black) 0%,
+          var(--netflix-dark) 100%
+        );
+        color: var(--text-white);
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+        overflow: hidden;
+        height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .tv-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 20px 40px;
+        max-width: 100%;
+        height: 100vh;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+
+      /* Header - Compact for viewport fit */
+      .tv-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 16px 32px;
+        background: var(--surface-dark);
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        flex-shrink: 0;
+      }
+
+      .tv-logo {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 36px;
+        font-weight: 400;
+        letter-spacing: 4px;
+        color: var(--netflix-red);
+      }
+
+      .tv-room-code {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 32px;
+        font-weight: 400;
+        letter-spacing: 8px;
+        color: var(--netflix-red);
+      }
+
+      .tv-progress {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--text-gray);
+      }
+
+      /* Status Banner - Modern Style */
+      .tv-status-banner {
+        padding: 14px 28px;
+        background: rgba(76, 175, 80, 0.2);
+        border: 2px solid #4caf50;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        font-size: 20px;
+        font-weight: 700;
+        text-align: center;
+        flex-shrink: 0;
+        box-shadow: 0 0 16px rgba(76, 175, 80, 0.3);
+        backdrop-filter: blur(10px);
+      }
+
+      .tv-status-banner.warning {
+        background: rgba(255, 152, 0, 0.2);
+        border-color: #ff9800;
+        box-shadow: 0 0 16px rgba(255, 152, 0, 0.3);
+      }
+
+      .tv-status-banner.danger {
+        background: rgba(244, 67, 54, 0.2);
+        border-color: #f44336;
+        box-shadow: 0 0 16px rgba(244, 67, 54, 0.3);
+      }
+
+      /* Main Content Area - Vertically centered, no scroll */
+      .tv-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        width: 100%;
+        padding: 0 40px;
+        overflow: hidden;
+        min-height: 0;
+      }
+
+      /* Waiting Screen - Modern Netflix-style Card */
+      .tv-waiting {
+        text-align: center;
+        width: 100%;
+        max-width: 700px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 48px 60px;
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        max-height: 100%;
+        overflow: hidden;
+      }
+
+      .tv-waiting h1 {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 48px;
+        margin-bottom: 32px;
+        color: var(--text-white);
+        letter-spacing: 3px;
+        font-weight: 400;
+      }
+
+      /* Room Code Badge - Enhanced */
+      .tv-room-code-badge {
+        display: inline-block;
+        background: rgba(229, 9, 20, 0.15);
+        border: 3px solid var(--netflix-red);
+        border-radius: 16px;
+        padding: 24px 48px;
+        margin-bottom: 28px;
+        box-shadow: 0 0 20px rgba(229, 9, 20, 0.3),
+          0 4px 16px rgba(0, 0, 0, 0.3);
+      }
+
+      .tv-room-code-badge-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-gray);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 8px;
+      }
+
+      .tv-room-code-badge-code {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 64px;
+        font-weight: 400;
+        letter-spacing: 12px;
+        color: var(--netflix-red);
+        text-shadow: 0 0 20px rgba(229, 9, 20, 0.5);
+      }
+
+      .tv-waiting p {
+        font-size: 18px;
+        color: var(--text-gray);
+        margin-bottom: 28px;
+        font-weight: 500;
+        line-height: 1.5;
+      }
+
+      /* QR Code Container */
+      .tv-qr-code-container {
+        margin: 32px 0;
+        padding: 24px;
+        background: white;
+        border-radius: 16px;
+        display: inline-block;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      }
+
+      #tv-qr-code {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      #tv-qr-code canvas {
+        border-radius: 8px;
+      }
+
+      .tv-qr-label {
+        font-size: 16px;
+        color: var(--text-gray);
+        margin-bottom: 16px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .tv-player-count-section {
+        margin: 32px 0;
+        padding: 28px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.12);
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .tv-player-count {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 72px;
+        font-weight: 400;
+        color: var(--netflix-red);
+        letter-spacing: 4px;
+        text-shadow: 0 0 20px rgba(229, 9, 20, 0.4);
+      }
+
+      .tv-player-count-label {
+        font-size: 14px;
+        color: var(--text-gray);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-top: 8px;
+        font-weight: 600;
+      }
+
+      /* Game Control Buttons - Modern Style */
+      .tv-controls {
+        margin-top: 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        width: 100%;
+      }
+
+      .tv-btn {
+        padding: 18px 32px;
+        font-family: "Inter", sans-serif;
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        background: var(--netflix-red);
+        border: 2px solid var(--netflix-red);
+        border-radius: 12px;
+        color: var(--text-white);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 100%;
+        box-shadow: 0 4px 16px rgba(229, 9, 20, 0.3);
+      }
+
+      .tv-btn:hover:not(:disabled) {
+        background: #b8070f;
+        border-color: #b8070f;
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px rgba(229, 9, 20, 0.5);
+      }
+
+      .tv-btn:disabled {
+        background: rgba(128, 128, 128, 0.3);
+        border-color: rgba(128, 128, 128, 0.3);
+        cursor: not-allowed;
+        opacity: 0.5;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .tv-btn-secondary {
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        color: var(--text-white);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .tv-btn-secondary:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.4);
+        box-shadow: 0 8px 20px rgba(255, 255, 255, 0.15);
+      }
+
+      /* Question Display - Modernized Card Design */
+      .tv-question-container {
+        width: 100%;
+        max-width: 1100px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        overflow: hidden;
+        animation: fadeIn 0.4s ease-in;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Category Badge - Pill Style */
+      .tv-category {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 28px;
+        color: var(--netflix-red);
+        text-transform: uppercase;
+        letter-spacing: 6px;
+        font-weight: 700;
+        margin-bottom: 32px;
+        padding: 12px 32px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid var(--netflix-red);
+        border-radius: 50px;
+        box-shadow: 0 0 12px rgba(229, 9, 20, 0.3);
+        display: inline-block;
+        align-self: center;
+      }
+
+      /* Question Box - Enhanced Card */
+      .tv-question-text {
+        font-size: 38px;
+        font-weight: 600;
+        line-height: 1.4;
+        margin-bottom: 36px;
+        padding: 48px 56px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        border-radius: 16px;
+        min-height: 160px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05),
+          0 4px 24px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+      }
+
+      /* Answer Grid - Modern Card Layout */
+      .tv-answers {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 20px;
+      }
+
+      /* Answer Cards - Join Game Style */
+      .tv-answer {
+        padding: 32px 28px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        font-size: 22px;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(8px);
+        text-align: center;
+        min-height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .tv-answer:hover {
+        transform: scale(1.03);
+        box-shadow: 0 8px 24px rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+
+      .tv-answer.correct {
+        background: rgba(76, 175, 80, 0.25);
+        border-color: #4caf50;
+        border-width: 3px;
+        box-shadow: 0 0 20px rgba(76, 175, 80, 0.4),
+          0 4px 12px rgba(0, 0, 0, 0.3);
+        transform: scale(1.05);
+      }
+
+      .tv-answer.incorrect {
+        background: rgba(239, 68, 68, 0.15);
+        border-color: #ef4444;
+        border-width: 2px;
+        opacity: 0.5;
+      }
+
+      /* Player Answer Indicators - Compact */
+      .tv-answer-status {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+      }
+
+      .tv-player-indicator {
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        font-size: 18px;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(4px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .tv-player-indicator.answered {
+        background: rgba(76, 175, 80, 0.2);
+        border: 2px solid #4caf50;
+        box-shadow: 0 0 12px rgba(76, 175, 80, 0.4);
+        transform: scale(1.05);
+      }
+
+      .tv-player-indicator.waiting {
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      /* Leaderboard - Optimized for no-scroll */
+      .tv-leaderboard {
+        width: 100%;
+        max-width: 900px;
+        overflow: hidden;
+      }
+
+      .tv-leaderboard h2 {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 48px;
+        margin-bottom: 32px;
+        color: var(--text-white);
+        letter-spacing: 3px;
+      }
+
+      .tv-leaderboard-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+
+      .tv-leaderboard-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 32px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        font-size: 28px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .tv-leaderboard-item.rank-1 {
+        background: rgba(229, 9, 20, 0.2);
+        border: 3px solid var(--netflix-red);
+        box-shadow: 0 0 24px rgba(229, 9, 20, 0.4),
+          0 4px 12px rgba(0, 0, 0, 0.3);
+        transform: scale(1.02);
+      }
+
+      .tv-leaderboard-item.rank-2 {
+        background: rgba(255, 255, 255, 0.1);
+        border: 3px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 0 16px rgba(255, 255, 255, 0.2),
+          0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .tv-leaderboard-item.rank-3 {
+        background: rgba(255, 255, 255, 0.08);
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.15),
+          0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .tv-leaderboard-rank {
+        font-weight: bold;
+        margin-right: 20px;
+        min-width: 60px;
+      }
+
+      .tv-leaderboard-name {
+        flex: 1;
+        text-align: left;
+      }
+
+      .tv-leaderboard-score {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 36px;
+        font-weight: 400;
+        color: var(--netflix-red);
+      }
+
+      /* Minigame Display - Optimized for no-scroll */
+      .tv-minigame {
+        text-align: center;
+        width: 100%;
+        max-width: 900px;
+        overflow: hidden;
+      }
+
+      .tv-minigame h2 {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 56px;
+        margin-bottom: 32px;
+        color: var(--netflix-red);
+        letter-spacing: 4px;
+      }
+
+      .tv-minigame-message {
+        font-size: 28px;
+        margin-bottom: 32px;
+        color: #fff;
+      }
+
+      .tv-minigame-results {
+        max-width: 800px;
+        margin: 0 auto;
+        max-height: 450px;
+        overflow-y: auto;
+      }
+
+      .tv-minigame-result {
+        padding: 16px 28px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        font-size: 22px;
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .tv-minigame-result.survived {
+        background: rgba(76, 175, 80, 0.3);
+        border: 2px solid #4caf50;
+      }
+
+      .tv-minigame-result.eliminated {
+        background: rgba(244, 67, 54, 0.3);
+        border: 2px solid #f44336;
+      }
+
+      /* Final Sprint - Optimized for no-scroll */
+      .tv-final-sprint {
+        width: 100%;
+        max-width: 1000px;
+        overflow: hidden;
+      }
+
+      .tv-final-sprint h2 {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 56px;
+        margin-bottom: 32px;
+        color: var(--netflix-red);
+        letter-spacing: 4px;
+      }
+
+      .tv-sprint-progress {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        max-height: 450px;
+        overflow-y: auto;
+      }
+
+      .tv-sprint-player {
+        display: flex;
+        align-items: center;
+        padding: 14px 24px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        font-size: 24px;
+      }
+
+      .tv-sprint-player-name {
+        flex: 1;
+        text-align: left;
+      }
+
+      .tv-sprint-player-progress {
+        font-weight: bold;
+        color: #ffd700;
+        margin-left: 20px;
+      }
+
+      .tv-sprint-bar {
+        width: 50%;
+        height: 24px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-left: 20px;
+      }
+
+      .tv-sprint-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4caf50 0%, #8bc34a 100%);
+        transition: width 0.5s ease;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      /* 720p optimization - ensure everything fits */
+      @media (max-height: 720px) {
+        .tv-container {
+          padding: 12px 24px;
+        }
+
+        .tv-header {
+          padding: 10px 20px;
+          margin-bottom: 10px;
+        }
+
+        .tv-logo {
+          font-size: 24px;
+        }
+
+        .tv-room-code {
+          font-size: 20px;
+        }
+
+        .tv-progress {
+          font-size: 16px;
+        }
+
+        /* Waiting Screen */
+        .tv-waiting {
+          padding: 20px 36px;
+          max-width: 600px;
+        }
+
+        .tv-waiting h1 {
+          font-size: 28px;
+          margin-bottom: 14px;
+        }
+
+        .tv-room-code-badge {
+          padding: 14px 28px;
+          margin-bottom: 14px;
+        }
+
+        .tv-room-code-badge-label {
+          font-size: 11px;
+        }
+
+        .tv-room-code-badge-code {
+          font-size: 40px;
+          letter-spacing: 6px;
+        }
+
+        .tv-waiting p {
+          font-size: 13px;
+          margin-bottom: 14px;
+        }
+
+        .tv-player-count-section {
+          margin: 14px 0;
+          padding: 14px;
+        }
+
+        .tv-player-count {
+          font-size: 44px;
+        }
+
+        .tv-player-count-label {
+          font-size: 11px;
+        }
+
+        .tv-controls {
+          margin-top: 18px;
+          gap: 8px;
+        }
+
+        .tv-btn {
+          padding: 10px 20px;
+          font-size: 13px;
+        }
+
+        /* Question Screen */
+        .tv-category {
+          font-size: 20px;
+          margin-bottom: 20px;
+          padding: 8px 24px;
+          letter-spacing: 4px;
+        }
+
+        .tv-question-text {
+          font-size: 26px;
+          padding: 32px 40px;
+          margin-bottom: 24px;
+          min-height: 110px;
+        }
+
+        .tv-answers {
+          gap: 16px;
+          margin-bottom: 16px;
+        }
+
+        .tv-answer {
+          padding: 24px 20px;
+          font-size: 18px;
+          min-height: 80px;
+        }
+
+        .tv-player-indicator {
+          padding: 6px 12px;
+          font-size: 14px;
+        }
+
+        /* Leaderboard */
+        .tv-leaderboard h2 {
+          font-size: 36px;
+          margin-bottom: 20px;
+        }
+
+        .tv-leaderboard-list {
+          max-height: 350px;
+        }
+
+        .tv-leaderboard-item {
+          padding: 14px 20px;
+          font-size: 20px;
+          border-radius: 10px;
+        }
+
+        .tv-leaderboard-item.rank-1 {
+          transform: scale(1.01);
+        }
+
+        .tv-leaderboard-score {
+          font-size: 28px;
+        }
+
+        /* Minigame */
+        .tv-minigame h2 {
+          font-size: 40px;
+          margin-bottom: 20px;
+        }
+
+        .tv-minigame-message {
+          font-size: 20px;
+          margin-bottom: 20px;
+        }
+
+        .tv-minigame-results {
+          max-height: 300px;
+        }
+
+        .tv-minigame-result {
+          padding: 12px 20px;
+          font-size: 16px;
+        }
+
+        /* Final Sprint */
+        .tv-final-sprint h2 {
+          font-size: 40px;
+          margin-bottom: 20px;
+        }
+
+        .tv-sprint-progress {
+          max-height: 300px;
+        }
+
+        .tv-sprint-player {
+          padding: 10px 18px;
+          font-size: 18px;
+        }
+
+        .tv-sprint-bar {
+          height: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="tv-container">
+      <!-- Header -->
+      <div class="tv-header">
+        <div class="tv-logo">1280 TRIVIA</div>
+        <div class="tv-room-code" data-testid="tv-room-code">
+          {{ room_code }}
+        </div>
+        <div class="tv-progress">
+          <span id="tv-current-question" data-testid="tv-current-question"
+            >0</span
+          >
+          /
+          <span id="tv-total-questions" data-testid="tv-total-questions"
+            >0</span
+          >
+        </div>
+      </div>
+
+      <!-- Status Banner -->
+      <div
+        id="tv-status-banner"
+        data-testid="all-answered-banner"
+        class="tv-status-banner hidden"
+      ></div>
+
+      <!-- Waiting Screen -->
+      <div id="tv-waiting" data-testid="tv-waiting" class="tv-content">
+        <div class="tv-waiting">
+          <h1>Waiting for Players</h1>
+
+          <div class="tv-room-code-badge">
+            <div class="tv-room-code-badge-label">Room Code</div>
+            <div class="tv-room-code-badge-code">{{ room_code }}</div>
+          </div>
+
+          <div class="tv-qr-label">Scan to Join</div>
+          <div class="tv-qr-code-container">
+            <div id="tv-qr-code"></div>
+          </div>
+
+          <p>Or visit <strong>{{ request.host }}/join</strong></p>
+
+          <div class="tv-player-count-section">
+            <div class="tv-player-count">
+              <span id="tv-player-count">0</span>
+            </div>
+            <div class="tv-player-count-label">Players Joined</div>
+          </div>
+
+          <div class="tv-controls">
+            <button
+              id="start-game-btn"
+              data-testid="start-game-btn"
+              class="tv-btn"
+              disabled
+            >
+              Start Game
+            </button>
+            <button id="end-game-btn" class="tv-btn tv-btn-secondary">
+              End Game
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Question Screen -->
+      <div id="tv-question" class="tv-content tv-question-container hidden">
+        <div class="tv-category" id="tv-category"></div>
+        <div
+          class="tv-question-text"
+          id="tv-question-text"
+          data-testid="question-text"
+        ></div>
+        <div class="tv-answers" id="tv-answers"></div>
+        <div class="tv-answer-status" id="tv-answer-status"></div>
+      </div>
+
+      <!-- Leaderboard -->
+      <div id="tv-leaderboard" class="tv-content tv-leaderboard hidden">
+        <h2>Leaderboard</h2>
+        <div class="tv-leaderboard-list" id="tv-leaderboard-list"></div>
+      </div>
+
+      <!-- Minigame Screen -->
+      <div id="tv-minigame" class="tv-content tv-minigame hidden">
+        <h2>KILLING FLOOR</h2>
+        <div class="tv-minigame-message" id="tv-minigame-message"></div>
+        <div class="tv-minigame-results" id="tv-minigame-results"></div>
+      </div>
+
+      <!-- Final Sprint -->
+      <div id="tv-final-sprint" class="tv-content tv-final-sprint hidden">
+        <h2>FINAL SPRINT</h2>
+        <p style="font-size: 36px; margin-bottom: 40px">
+          Race to <span id="tv-sprint-goal">5</span> correct answers!
+        </p>
+        <div class="tv-sprint-progress" id="tv-sprint-progress"></div>
+      </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+      const ROOM_CODE = "{{ room_code }}";
+
+      // Generate QR code when page loads
+      document.addEventListener('DOMContentLoaded', function() {
+        const joinUrl = window.location.origin + '/join';
+
+        // Create QR code
+        new QRCode(document.getElementById('tv-qr-code'), {
+          text: joinUrl,
+          width: 200,
+          height: 200,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      });
+    </script>
+    <script src="{{ url_for('static', filename='js/tv.js') }}"></script>
+  </body>
+</html>

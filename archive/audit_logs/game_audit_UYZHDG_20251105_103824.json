@@ -1,0 +1,1392 @@
+{
+  "room_code": "UYZHDG",
+  "total_questions": 16,
+  "players": {
+    "Lauren": {
+      "id": "player_0_8658",
+      "score": 640
+    },
+    "Benny": {
+      "id": "player_1_5459",
+      "score": 480
+    },
+    "Gina": {
+      "id": "player_2_5770",
+      "score": 480
+    },
+    "Ian": {
+      "id": "player_3_6767",
+      "score": 640
+    }
+  },
+  "audit_log": [
+    {
+      "timestamp": "2025-11-05T10:38:17.882925",
+      "type": "game_created",
+      "data": {
+        "room_code": "UYZHDG",
+        "host": "Lauren"
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:17.885506",
+      "type": "player_joined",
+      "data": {
+        "name": "Lauren",
+        "id": "player_0_8658"
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:17.887050",
+      "type": "player_joined",
+      "data": {
+        "name": "Benny",
+        "id": "player_1_5459"
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:17.888619",
+      "type": "player_joined",
+      "data": {
+        "name": "Gina",
+        "id": "player_2_5770"
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:17.890636",
+      "type": "player_joined",
+      "data": {
+        "name": "Ian",
+        "id": "player_3_6767"
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:17.892440",
+      "type": "game_started",
+      "data": {
+        "room_code": "UYZHDG"
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:17.894050",
+      "type": "question_loaded",
+      "data": {
+        "number": 1,
+        "question": {
+          "answers": [
+            "1911",
+            "1912",
+            "1913",
+            "1910"
+          ],
+          "category": "GENERAL KNOWLEDGE",
+          "context": "Classic trivia",
+          "difficulty": 2,
+          "id": 0,
+          "question_text": "What year did the Titanic sink?",
+          "question_type": "trivia",
+          "time_remaining": 30
+        }
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:17.895704",
+      "type": "player_voted",
+      "data": {
+        "player": "Lauren",
+        "answer": "1911",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:17.897067",
+      "type": "player_voted",
+      "data": {
+        "player": "Benny",
+        "answer": "1910",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:17.898664",
+      "type": "player_voted",
+      "data": {
+        "player": "Gina",
+        "answer": "1913",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:17.900878",
+      "type": "player_voted",
+      "data": {
+        "player": "Ian",
+        "answer": "1913",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:17.902610",
+      "type": "leaderboard_shown",
+      "data": {
+        "question": 2,
+        "leaderboard": [
+          {
+            "answered_current": true,
+            "name": "Lauren",
+            "player_id": "player_0_8658",
+            "rank": 1,
+            "score": 0
+          },
+          {
+            "answered_current": true,
+            "name": "Benny",
+            "player_id": "player_1_5459",
+            "rank": 2,
+            "score": 0
+          },
+          {
+            "answered_current": true,
+            "name": "Gina",
+            "player_id": "player_2_5770",
+            "rank": 3,
+            "score": 0
+          },
+          {
+            "answered_current": true,
+            "name": "Ian",
+            "player_id": "player_3_6767",
+            "rank": 4,
+            "score": 0
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:17.904047",
+      "type": "next_question",
+      "data": {
+        "number": 3
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:17.906894",
+      "type": "player_voted",
+      "data": {
+        "player": "Lauren",
+        "answer": "Gina",
+        "correct": true,
+        "points": 160
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:17.908651",
+      "type": "player_voted",
+      "data": {
+        "player": "Benny",
+        "answer": "Lauren",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:17.909941",
+      "type": "player_voted",
+      "data": {
+        "player": "Gina",
+        "answer": "Gina",
+        "correct": true,
+        "points": 160
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:17.911292",
+      "type": "player_voted",
+      "data": {
+        "player": "Ian",
+        "answer": "Ian",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:17.912736",
+      "type": "leaderboard_shown",
+      "data": {
+        "question": 3,
+        "leaderboard": [
+          {
+            "answered_current": true,
+            "name": "Lauren",
+            "player_id": "player_0_8658",
+            "rank": 1,
+            "score": 160
+          },
+          {
+            "answered_current": true,
+            "name": "Gina",
+            "player_id": "player_2_5770",
+            "rank": 2,
+            "score": 160
+          },
+          {
+            "answered_current": true,
+            "name": "Benny",
+            "player_id": "player_1_5459",
+            "rank": 3,
+            "score": 0
+          },
+          {
+            "answered_current": true,
+            "name": "Ian",
+            "player_id": "player_3_6767",
+            "rank": 4,
+            "score": 0
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:17.914172",
+      "type": "next_question",
+      "data": {
+        "number": 4
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:18.431624",
+      "type": "player_voted",
+      "data": {
+        "player": "Lauren",
+        "answer": "Teen",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:18.436348",
+      "type": "player_voted",
+      "data": {
+        "player": "Benny",
+        "answer": "MILF",
+        "correct": true,
+        "points": 160
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:18.439819",
+      "type": "player_voted",
+      "data": {
+        "player": "Gina",
+        "answer": "Anal",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:18.444264",
+      "type": "player_voted",
+      "data": {
+        "player": "Ian",
+        "answer": "Big Ass",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:18.447254",
+      "type": "leaderboard_shown",
+      "data": {
+        "question": 4,
+        "leaderboard": [
+          {
+            "answered_current": true,
+            "name": "Lauren",
+            "player_id": "player_0_8658",
+            "rank": 1,
+            "score": 160
+          },
+          {
+            "answered_current": true,
+            "name": "Benny",
+            "player_id": "player_1_5459",
+            "rank": 2,
+            "score": 160
+          },
+          {
+            "answered_current": true,
+            "name": "Gina",
+            "player_id": "player_2_5770",
+            "rank": 3,
+            "score": 160
+          },
+          {
+            "answered_current": true,
+            "name": "Ian",
+            "player_id": "player_3_6767",
+            "rank": 4,
+            "score": 0
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:18.451294",
+      "type": "next_question",
+      "data": {
+        "number": 5
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:18.963157",
+      "type": "player_voted",
+      "data": {
+        "player": "Lauren",
+        "answer": "Benny",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:18.964891",
+      "type": "player_voted",
+      "data": {
+        "player": "Benny",
+        "answer": "Gina",
+        "correct": true,
+        "points": 160
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:18.966847",
+      "type": "player_voted",
+      "data": {
+        "player": "Gina",
+        "answer": "Gina",
+        "correct": true,
+        "points": 160
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:18.969258",
+      "type": "player_voted",
+      "data": {
+        "player": "Ian",
+        "answer": "Ian",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:18.971033",
+      "type": "leaderboard_shown",
+      "data": {
+        "question": 5,
+        "leaderboard": [
+          {
+            "answered_current": true,
+            "name": "Benny",
+            "player_id": "player_1_5459",
+            "rank": 1,
+            "score": 320
+          },
+          {
+            "answered_current": true,
+            "name": "Gina",
+            "player_id": "player_2_5770",
+            "rank": 2,
+            "score": 320
+          },
+          {
+            "answered_current": true,
+            "name": "Lauren",
+            "player_id": "player_0_8658",
+            "rank": 3,
+            "score": 160
+          },
+          {
+            "answered_current": true,
+            "name": "Ian",
+            "player_id": "player_3_6767",
+            "rank": 4,
+            "score": 0
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:18.973369",
+      "type": "next_question",
+      "data": {
+        "number": 6
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:19.485832",
+      "type": "player_voted",
+      "data": {
+        "player": "Lauren",
+        "answer": "Ian",
+        "correct": true,
+        "points": 160
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:19.487718",
+      "type": "player_voted",
+      "data": {
+        "player": "Benny",
+        "answer": "Gina",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:19.489436",
+      "type": "player_voted",
+      "data": {
+        "player": "Gina",
+        "answer": "Gina",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:19.496606",
+      "type": "player_voted",
+      "data": {
+        "player": "Ian",
+        "answer": "Benny",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:19.500693",
+      "type": "leaderboard_shown",
+      "data": {
+        "question": 6,
+        "leaderboard": [
+          {
+            "answered_current": true,
+            "name": "Lauren",
+            "player_id": "player_0_8658",
+            "rank": 1,
+            "score": 320
+          },
+          {
+            "answered_current": true,
+            "name": "Benny",
+            "player_id": "player_1_5459",
+            "rank": 2,
+            "score": 320
+          },
+          {
+            "answered_current": true,
+            "name": "Gina",
+            "player_id": "player_2_5770",
+            "rank": 3,
+            "score": 320
+          },
+          {
+            "answered_current": true,
+            "name": "Ian",
+            "player_id": "player_3_6767",
+            "rank": 4,
+            "score": 0
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:19.503870",
+      "type": "next_question",
+      "data": {
+        "number": 7
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:20.015757",
+      "type": "player_voted",
+      "data": {
+        "player": "Lauren",
+        "answer": "Mississippi",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:20.019163",
+      "type": "player_voted",
+      "data": {
+        "player": "Benny",
+        "answer": "Mississippi",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:20.021957",
+      "type": "player_voted",
+      "data": {
+        "player": "Gina",
+        "answer": "Mississippi",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:20.024801",
+      "type": "player_voted",
+      "data": {
+        "player": "Ian",
+        "answer": "The Nile",
+        "correct": true,
+        "points": 160
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:20.027251",
+      "type": "leaderboard_shown",
+      "data": {
+        "question": 7,
+        "leaderboard": [
+          {
+            "answered_current": true,
+            "name": "Lauren",
+            "player_id": "player_0_8658",
+            "rank": 1,
+            "score": 320
+          },
+          {
+            "answered_current": true,
+            "name": "Benny",
+            "player_id": "player_1_5459",
+            "rank": 2,
+            "score": 320
+          },
+          {
+            "answered_current": true,
+            "name": "Gina",
+            "player_id": "player_2_5770",
+            "rank": 3,
+            "score": 320
+          },
+          {
+            "answered_current": true,
+            "name": "Ian",
+            "player_id": "player_3_6767",
+            "rank": 4,
+            "score": 160
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:20.029354",
+      "type": "next_question",
+      "data": {
+        "number": 8
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:20.549850",
+      "type": "player_voted",
+      "data": {
+        "player": "Lauren",
+        "answer": "Lauren",
+        "correct": true,
+        "points": 160
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:20.559669",
+      "type": "player_voted",
+      "data": {
+        "player": "Benny",
+        "answer": "Ian",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:20.565180",
+      "type": "player_voted",
+      "data": {
+        "player": "Gina",
+        "answer": "Gina",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:20.574732",
+      "type": "player_voted",
+      "data": {
+        "player": "Ian",
+        "answer": "Lauren",
+        "correct": true,
+        "points": 160
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:20.577982",
+      "type": "leaderboard_shown",
+      "data": {
+        "question": 8,
+        "leaderboard": [
+          {
+            "answered_current": true,
+            "name": "Lauren",
+            "player_id": "player_0_8658",
+            "rank": 1,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Benny",
+            "player_id": "player_1_5459",
+            "rank": 2,
+            "score": 320
+          },
+          {
+            "answered_current": true,
+            "name": "Gina",
+            "player_id": "player_2_5770",
+            "rank": 3,
+            "score": 320
+          },
+          {
+            "answered_current": true,
+            "name": "Ian",
+            "player_id": "player_3_6767",
+            "rank": 4,
+            "score": 320
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:20.581542",
+      "type": "next_question",
+      "data": {
+        "number": 9
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:21.095381",
+      "type": "player_voted",
+      "data": {
+        "player": "Lauren",
+        "answer": "Benny",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:21.098649",
+      "type": "player_voted",
+      "data": {
+        "player": "Benny",
+        "answer": "Benny",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:21.102972",
+      "type": "player_voted",
+      "data": {
+        "player": "Gina",
+        "answer": "Benny",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:21.105830",
+      "type": "player_voted",
+      "data": {
+        "player": "Ian",
+        "answer": "Ian",
+        "correct": true,
+        "points": 160
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:21.110024",
+      "type": "leaderboard_shown",
+      "data": {
+        "question": 9,
+        "leaderboard": [
+          {
+            "answered_current": true,
+            "name": "Lauren",
+            "player_id": "player_0_8658",
+            "rank": 1,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Ian",
+            "player_id": "player_3_6767",
+            "rank": 2,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Benny",
+            "player_id": "player_1_5459",
+            "rank": 3,
+            "score": 320
+          },
+          {
+            "answered_current": true,
+            "name": "Gina",
+            "player_id": "player_2_5770",
+            "rank": 4,
+            "score": 320
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:21.113275",
+      "type": "next_question",
+      "data": {
+        "number": 10
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:21.627916",
+      "type": "player_voted",
+      "data": {
+        "player": "Lauren",
+        "answer": "30 minutes",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:21.630806",
+      "type": "player_voted",
+      "data": {
+        "player": "Benny",
+        "answer": "30 minutes",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:21.633349",
+      "type": "player_voted",
+      "data": {
+        "player": "Gina",
+        "answer": "2 minutes",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:21.636213",
+      "type": "player_voted",
+      "data": {
+        "player": "Ian",
+        "answer": "2 minutes",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:21.639948",
+      "type": "leaderboard_shown",
+      "data": {
+        "question": 10,
+        "leaderboard": [
+          {
+            "answered_current": true,
+            "name": "Lauren",
+            "player_id": "player_0_8658",
+            "rank": 1,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Ian",
+            "player_id": "player_3_6767",
+            "rank": 2,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Benny",
+            "player_id": "player_1_5459",
+            "rank": 3,
+            "score": 320
+          },
+          {
+            "answered_current": true,
+            "name": "Gina",
+            "player_id": "player_2_5770",
+            "rank": 4,
+            "score": 320
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:21.642703",
+      "type": "next_question",
+      "data": {
+        "number": 11
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:22.155151",
+      "type": "player_voted",
+      "data": {
+        "player": "Lauren",
+        "answer": "About 25%",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:22.158386",
+      "type": "player_voted",
+      "data": {
+        "player": "Benny",
+        "answer": "About 25%",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:22.160982",
+      "type": "player_voted",
+      "data": {
+        "player": "Gina",
+        "answer": "About 66%",
+        "correct": true,
+        "points": 160
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:22.163073",
+      "type": "player_voted",
+      "data": {
+        "player": "Ian",
+        "answer": "About 90%",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:22.165222",
+      "type": "leaderboard_shown",
+      "data": {
+        "question": 11,
+        "leaderboard": [
+          {
+            "answered_current": true,
+            "name": "Lauren",
+            "player_id": "player_0_8658",
+            "rank": 1,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Gina",
+            "player_id": "player_2_5770",
+            "rank": 2,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Ian",
+            "player_id": "player_3_6767",
+            "rank": 3,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Benny",
+            "player_id": "player_1_5459",
+            "rank": 4,
+            "score": 320
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:22.167947",
+      "type": "next_question",
+      "data": {
+        "number": 12
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:22.680200",
+      "type": "player_voted",
+      "data": {
+        "player": "Lauren",
+        "answer": "Isaac Asimov",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:22.682437",
+      "type": "player_voted",
+      "data": {
+        "player": "Benny",
+        "answer": "Isaac Asimov",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:22.684219",
+      "type": "player_voted",
+      "data": {
+        "player": "Gina",
+        "answer": "Aldous Huxley",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:22.685966",
+      "type": "player_voted",
+      "data": {
+        "player": "Ian",
+        "answer": "Ray Bradbury",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:22.687652",
+      "type": "leaderboard_shown",
+      "data": {
+        "question": 12,
+        "leaderboard": [
+          {
+            "answered_current": true,
+            "name": "Lauren",
+            "player_id": "player_0_8658",
+            "rank": 1,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Gina",
+            "player_id": "player_2_5770",
+            "rank": 2,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Ian",
+            "player_id": "player_3_6767",
+            "rank": 3,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Benny",
+            "player_id": "player_1_5459",
+            "rank": 4,
+            "score": 320
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:22.689183",
+      "type": "next_question",
+      "data": {
+        "number": 13
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:23.198466",
+      "type": "player_voted",
+      "data": {
+        "player": "Lauren",
+        "answer": "10+ times",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:23.200419",
+      "type": "player_voted",
+      "data": {
+        "player": "Benny",
+        "answer": "Never",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:23.203604",
+      "type": "player_voted",
+      "data": {
+        "player": "Gina",
+        "answer": "Once",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:23.205253",
+      "type": "player_voted",
+      "data": {
+        "player": "Ian",
+        "answer": "Once",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:23.207108",
+      "type": "leaderboard_shown",
+      "data": {
+        "question": 13,
+        "leaderboard": [
+          {
+            "answered_current": true,
+            "name": "Lauren",
+            "player_id": "player_0_8658",
+            "rank": 1,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Gina",
+            "player_id": "player_2_5770",
+            "rank": 2,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Ian",
+            "player_id": "player_3_6767",
+            "rank": 3,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Benny",
+            "player_id": "player_1_5459",
+            "rank": 4,
+            "score": 320
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:23.208652",
+      "type": "next_question",
+      "data": {
+        "number": 14
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:23.723302",
+      "type": "player_voted",
+      "data": {
+        "player": "Lauren",
+        "answer": "Benny",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:23.726943",
+      "type": "player_voted",
+      "data": {
+        "player": "Benny",
+        "answer": "Lauren",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:23.729926",
+      "type": "player_voted",
+      "data": {
+        "player": "Gina",
+        "answer": "Lauren",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:23.732801",
+      "type": "player_voted",
+      "data": {
+        "player": "Ian",
+        "answer": "Gina",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:23.735979",
+      "type": "leaderboard_shown",
+      "data": {
+        "question": 14,
+        "leaderboard": [
+          {
+            "answered_current": true,
+            "name": "Lauren",
+            "player_id": "player_0_8658",
+            "rank": 1,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Gina",
+            "player_id": "player_2_5770",
+            "rank": 2,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Ian",
+            "player_id": "player_3_6767",
+            "rank": 3,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Benny",
+            "player_id": "player_1_5459",
+            "rank": 4,
+            "score": 320
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:23.739498",
+      "type": "next_question",
+      "data": {
+        "number": 15
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:24.252968",
+      "type": "player_voted",
+      "data": {
+        "player": "Lauren",
+        "answer": "Bridgerton",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:24.255431",
+      "type": "player_voted",
+      "data": {
+        "player": "Benny",
+        "answer": "Stranger Things",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:24.258393",
+      "type": "player_voted",
+      "data": {
+        "player": "Gina",
+        "answer": "Wednesday",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:24.260614",
+      "type": "player_voted",
+      "data": {
+        "player": "Ian",
+        "answer": "Bridgerton",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:24.262651",
+      "type": "leaderboard_shown",
+      "data": {
+        "question": 15,
+        "leaderboard": [
+          {
+            "answered_current": true,
+            "name": "Lauren",
+            "player_id": "player_0_8658",
+            "rank": 1,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Gina",
+            "player_id": "player_2_5770",
+            "rank": 2,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Ian",
+            "player_id": "player_3_6767",
+            "rank": 3,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Benny",
+            "player_id": "player_1_5459",
+            "rank": 4,
+            "score": 320
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:24.264791",
+      "type": "next_question",
+      "data": {
+        "number": 16
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:24.777447",
+      "type": "player_voted",
+      "data": {
+        "player": "Lauren",
+        "answer": "Vatican City",
+        "correct": true,
+        "points": 160
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:24.780780",
+      "type": "player_voted",
+      "data": {
+        "player": "Benny",
+        "answer": "Vatican City",
+        "correct": true,
+        "points": 160
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:24.783362",
+      "type": "player_voted",
+      "data": {
+        "player": "Gina",
+        "answer": "Liechtenstein",
+        "correct": false,
+        "points": 0
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:24.791567",
+      "type": "player_voted",
+      "data": {
+        "player": "Ian",
+        "answer": "Vatican City",
+        "correct": true,
+        "points": 160
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:24.795467",
+      "type": "leaderboard_shown",
+      "data": {
+        "question": 16,
+        "leaderboard": [
+          {
+            "answered_current": true,
+            "name": "Lauren",
+            "player_id": "player_0_8658",
+            "rank": 1,
+            "score": 640
+          },
+          {
+            "answered_current": true,
+            "name": "Ian",
+            "player_id": "player_3_6767",
+            "rank": 2,
+            "score": 640
+          },
+          {
+            "answered_current": true,
+            "name": "Benny",
+            "player_id": "player_1_5459",
+            "rank": 3,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Gina",
+            "player_id": "player_2_5770",
+            "rank": 4,
+            "score": 480
+          }
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-11-05T10:38:24.799046",
+      "type": "final_results",
+      "data": {
+        "stats": {
+          "current_question": 15,
+          "host_name": "Lauren",
+          "players_answered": 4,
+          "room_code": "UYZHDG",
+          "status": "playing",
+          "time_remaining": 30,
+          "total_players": 4,
+          "total_questions": 15
+        },
+        "leaderboard": [
+          {
+            "answered_current": true,
+            "name": "Lauren",
+            "player_id": "player_0_8658",
+            "rank": 1,
+            "score": 640
+          },
+          {
+            "answered_current": true,
+            "name": "Ian",
+            "player_id": "player_3_6767",
+            "rank": 2,
+            "score": 640
+          },
+          {
+            "answered_current": true,
+            "name": "Benny",
+            "player_id": "player_1_5459",
+            "rank": 3,
+            "score": 480
+          },
+          {
+            "answered_current": true,
+            "name": "Gina",
+            "player_id": "player_2_5770",
+            "rank": 4,
+            "score": 480
+          }
+        ]
+      }
+    }
+  ]
+}

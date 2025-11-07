@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Host Dashboard - 1280 Trivia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+      :root {
+        --netflix-black: #0f0f0f;
+        --netflix-dark: #1a1a1a;
+        --netflix-red: #e50914;
+        --text-white: #ffffff;
+        --text-gray: #666666;
+        --surface-dark: rgba(255, 255, 255, 0.03);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--netflix-black) 0%,
+          var(--netflix-dark) 100%
+        );
+        color: var(--text-white);
+        min-height: 100vh;
+        font-weight: 400;
+      }
+
+      .container {
+        width: 100%;
+        min-height: 100vh;
+        position: relative;
+      }
+
+      /* Header */
+      .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 80px;
+        background: rgba(15, 15, 15, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 40px;
+        z-index: 1000;
+      }
+
+      .header h1 {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 32px;
+        font-weight: 400;
+        letter-spacing: 3px;
+        color: var(--netflix-red);
+        text-transform: uppercase;
+      }
+
+      .btn {
+        padding: 8px 16px;
+        background: var(--surface-dark);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        color: var(--text-white);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn:hover {
+        background: var(--netflix-red);
+        border-color: var(--netflix-red);
+      }
+
+      .btn-small {
+        font-size: 12px;
+        padding: 6px 12px;
+      }
+
+      .btn-primary {
+        background: var(--netflix-red);
+        border-color: var(--netflix-red);
+      }
+
+      .btn-success {
+        background: #00b894;
+        border-color: #00b894;
+      }
+
+      .btn-warning {
+        background: #fdcb6e;
+        border-color: #fdcb6e;
+        color: var(--netflix-black);
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      /* Main Content */
+      .section {
+        margin-top: 80px;
+        padding: 40px 40px 100px 40px;
+        min-height: calc(100vh - 80px);
+        position: relative;
+      }
+
+      .section h2 {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 48px;
+        font-weight: 400;
+        letter-spacing: 2px;
+        color: var(--text-white);
+        margin-bottom: 32px;
+        text-transform: uppercase;
+      }
+
+      /* Game Setup */
+      #game-setup {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background: radial-gradient(
+          circle at center,
+          rgba(229, 9, 20, 0.1) 0%,
+          transparent 70%
+        );
+      }
+
+      .form-group {
+        margin-bottom: 32px;
+        width: 100%;
+        max-width: 400px;
+      }
+
+      .form-group label {
+        display: block;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-white);
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 16px 20px;
+        background: var(--surface-dark);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        color: var(--text-white);
+        font-size: 16px;
+        font-weight: 500;
+      }
+
+      input[type="text"]:focus {
+        outline: none;
+        border-color: var(--netflix-red);
+        box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
+      }
+
+      input[type="text"]::placeholder {
+        color: var(--text-gray);
+      }
+
+      /* Game Lobby */
+      #game-lobby {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 60px;
+        align-items: start;
+      }
+
+      .room-code-display {
+        background: var(--surface-dark);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        padding: 40px;
+        text-align: center;
+        margin-bottom: 40px;
+      }
+
+      .room-code-display h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-gray);
+        margin-bottom: 16px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .room-code-display span {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 64px;
+        font-weight: 400;
+        color: var(--netflix-red);
+        letter-spacing: 8px;
+        display: block;
+        margin: 16px 0;
+      }
+
+      .room-code-display p {
+        font-size: 16px;
+        color: var(--text-gray);
+        margin-top: 16px;
+      }
+
+      .players-list h4 {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-white);
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      #players-ul {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 32px;
+      }
+
+      #players-ul li {
+        background: var(--surface-dark);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        padding: 16px 20px;
+        margin-bottom: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        background: var(--surface-dark);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        padding: 32px;
+        position: sticky;
+        top: 120px;
+      }
+
+      .sidebar h3 {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-white);
+        margin-bottom: 24px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-align: center;
+      }
+
+      /* Game Play */
+      #game-play {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 60px;
+      }
+
+      .question-display {
+        background: var(--surface-dark);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        padding: 40px;
+      }
+
+      .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .question-header h3 {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--netflix-red);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .timer {
+        background: var(--netflix-red);
+        color: var(--text-white);
+        padding: 12px 20px;
+        border-radius: 4px;
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 24px;
+        font-weight: 400;
+        letter-spacing: 1px;
+      }
+
+      #question-text {
+        font-size: 32px;
+        font-weight: 700;
+        line-height: 1.3;
+        color: var(--text-white);
+        margin-bottom: 32px;
+      }
+
+      .answers-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 32px;
+      }
+
+      .answer-option {
+        background: var(--surface-dark);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        padding: 20px;
+        font-size: 16px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        cursor: pointer;
+      }
+
+      .answer-option:hover {
+        border-color: var(--netflix-red);
+        background: rgba(229, 9, 20, 0.1);
+      }
+
+      .question-context {
+        background: rgba(229, 9, 20, 0.1);
+        border: 1px solid rgba(229, 9, 20, 0.3);
+        border-radius: 4px;
+        padding: 20px;
+        font-style: italic;
+        color: var(--text-gray);
+      }
+
+      .game-controls {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        margin: 32px 0;
+      }
+
+      .players-status h4 {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-white);
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      #player-status-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 12px;
+      }
+
+      .player-status-item {
+        background: var(--surface-dark);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* Game Results */
+      #game-results {
+        text-align: center;
+      }
+
+      #final-leaderboard {
+        background: var(--surface-dark);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        padding: 40px;
+        margin-bottom: 40px;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .game-summary {
+        background: var(--surface-dark);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        padding: 40px;
+        max-width: 600px;
+        margin: 0 auto 40px auto;
+      }
+
+      .game-summary h3 {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--text-white);
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      /* Leaderboard Items */
+      .leaderboard-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        font-size: 16px;
+        font-weight: 500;
+      }
+
+      .leaderboard-item:last-child {
+        border-bottom: none;
+      }
+
+      .leaderboard-item.rank-1 {
+        color: #ffd700;
+        font-weight: 700;
+        font-size: 18px;
+      }
+
+      /* Responsive */
+      @media (max-width: 1200px) {
+        #game-lobby,
+        #game-play {
+          grid-template-columns: 1fr;
+          gap: 40px;
+        }
+
+        .sidebar {
+          position: static;
+          order: -1;
+        }
+      }
+
+      /* Hidden State */
+      .hidden {
+        display: none !important;
+      }
+
+      /* Animations */
+      .fade-in {
+        animation: fadeIn 0.5s ease-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Roast Bar */
+      .roast-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 80px;
+        background: var(--netflix-black);
+        border-top: 2px solid var(--netflix-red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.8);
+      }
+
+      .roast-text {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-white);
+        text-align: center;
+        opacity: 1;
+        transition: all 0.4s ease;
+        text-transform: none;
+        letter-spacing: 0.5px;
+        max-width: 90%;
+        line-height: 1.2;
+      }
+
+      @keyframes glitch {
+        0% {
+          transform: translateX(0);
+        }
+        20% {
+          transform: translateX(-2px);
+        }
+        40% {
+          transform: translateX(2px);
+        }
+        60% {
+          transform: translateX(-1px);
+        }
+        80% {
+          transform: translateX(1px);
+        }
+        100% {
+          transform: translateX(0);
+        }
+      }
+
+      .glitch {
+        animation: glitch 0.3s ease-in-out;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>1280 Trivia</h1>
+        <a href="/" class="btn btn-small">← Back</a>
+      </div>
+
+      <!-- Game Creation -->
+      <div id="game-setup" class="section">
+        <h2>Host Dashboard</h2>
+        <div class="form-group">
+          <label for="host-name">Host Name:</label>
+          <input type="text" id="host-name" placeholder="Enter your name" />
+        </div>
+        <button
+          id="create-game-btn"
+          class="btn btn-primary"
+        >
+          Create Game
+        </button>
+      </div>
+
+      <!-- Game Lobby -->
+      <div id="game-lobby" class="section hidden">
+        <div>
+          <h2>Game Lobby</h2>
+          <div class="room-code-display">
+            <h3>Room Code</h3>
+            <span id="room-code">----</span>
+            <p>Players join at: <strong>localhost:5001/join</strong></p>
+          </div>
+
+          <div class="players-list">
+            <h4>Players Joined (<span id="player-count">0</span>):</h4>
+            <ul id="players-ul"></ul>
+          </div>
+
+          <button id="start-game-btn" class="btn btn-success" disabled>
+            Start Game
+          </button>
+        </div>
+
+        <!-- Current Leaderboard Sidebar -->
+        <div class="sidebar">
+          <h3>Damage Report</h3>
+          <div id="current-leaderboard"></div>
+        </div>
+      </div>
+
+      <!-- Game Play -->
+      <div id="game-play" class="section hidden">
+        <div>
+          <div class="question-display">
+            <div class="question-header">
+              <h3 id="question-category">Roast Session</h3>
+              <div class="timer"><span id="time-remaining">30</span>s</div>
+            </div>
+
+            <h2 id="question-text">Loading question...</h2>
+
+            <div class="answers-grid" id="answers-grid">
+              <!-- Answer options will be populated here -->
+            </div>
+
+            <div class="question-context">
+              <p id="question-context">Context will appear here...</p>
+            </div>
+          </div>
+
+          <div class="game-controls">
+            <button id="reveal-answer-btn" class="btn btn-warning">
+              Reveal Answer
+            </button>
+            <button id="next-question-btn" class="btn btn-primary" disabled>
+              Next Question
+            </button>
+          </div>
+
+          <div class="players-status">
+            <h4>
+              Player Answers (<span id="answered-count">0</span>/<span
+                id="total-players"
+                >0</span
+              >):
+            </h4>
+            <div id="player-status-list"></div>
+          </div>
+        </div>
+
+        <!-- Current Leaderboard Sidebar -->
+        <div class="sidebar">
+          <h3>Damage Report</h3>
+          <div id="current-leaderboard"></div>
+        </div>
+      </div>
+
+      <!-- Game Results -->
+      <div id="game-results" class="section hidden">
+        <h2>Final Results</h2>
+        <div id="final-leaderboard"></div>
+        <div class="game-summary">
+          <h3>Game Summary</h3>
+          <div id="game-summary-stats"></div>
+        </div>
+        <button id="new-game-btn" class="btn btn-primary">
+          Start New Game
+        </button>
+      </div>
+
+      <!-- Roast Bar -->
+      <div class="roast-bar">
+        <div class="roast-text" id="roastText">
+          Your friends are about to get fucking destroyed.
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.0/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/host.js') }}"></script>
+    <script>
+      // Test function for create game button
+      window.testCreateGame = function () {
+        console.log("🎯 Test create game called!");
+        console.log("HostDashboard exists:", !!window.hostDashboard);
+
+        // Call the actual host dashboard function
+        if (window.hostDashboard && window.hostDashboard.createGame) {
+          console.log("✅ Calling hostDashboard.createGame()");
+          window.hostDashboard.createGame();
+        } else {
+          console.error("❌ HostDashboard not found");
+          alert("Error: HostDashboard not found!");
+        }
+      };
+
+      // Roast lines for the roast bar
+      const roastLines = [
+        "Your friends are about to get fucking destroyed.",
+        "Time to find out who's really the dumbest in your group.",
+        "These receipts are going to hurt more than your last relationship.",
+        "Someone's getting exposed tonight and it's going to be beautiful.",
+        "This is more entertaining than your dating life.",
+        "Your text history is about to become everyone's business.",
+        "Prepare for maximum embarrassment and zero chill.",
+        "These questions hit harder than your mom's disappointment.",
+        "Time to see which friend is the real liability.",
+        "This game ends friendships faster than lending money.",
+        "Your group chat confessions are now public property.",
+        "Someone's about to get called out harder than a bad Yelp review.",
+        "Your embarrassing moments are about to go viral in this room.",
+        "Welcome to the roast where nobody is safe.",
+        "Your drunk texts are about to become prime time entertainment.",
+        "Time to see who's been saying what behind whose back.",
+        "This is therapy for people who can't afford therapy.",
+        "Your group chat is more toxic than a reality TV show.",
+        "Someone's dirty laundry is about to get aired out.",
+        "These questions will destroy you faster than a breakup text.",
+        "Your friends' stupidity is about to be scientifically measured.",
+        "Welcome to the shit show, population: all of you.",
+        "Your embarrassing moments have been weaponized for entertainment.",
+        "Time to find out who's the biggest disaster in your friend group.",
+        "Your poor life choices are about to become public knowledge.",
+        "This game is more brutal than your ex's new relationship status.",
+        "Someone's about to get roasted harder than a Thanksgiving turkey.",
+        "Your deepest regrets are now interactive entertainment.",
+        "Tonight's forecast: 100% chance of emotional damage.",
+        "Your secrets are about to become everyone else's entertainment.",
+        "This is where friendships come to die.",
+        "Your group chat is about to become a crime scene.",
+        "Someone's dignity is about to get absolutely obliterated.",
+        "Your worst moments are now prime time content.",
+        "This is more chaotic than your last family dinner.",
+        "Time to see who's been living the messiest life.",
+        "Your drunk decisions are about to be cross-examined.",
+        "Someone's about to get exposed worse than a leaked celebrity photo.",
+        "This game destroys relationships faster than student loans.",
+        "Your terrible choices are about to get the spotlight they deserve.",
+      ];
+
+      let currentRoastIndex = 0;
+
+      // Roast bar animation
+      function updateRoastBar() {
+        const roastElement = document.getElementById("roastText");
+
+        gsap.to(roastElement, {
+          duration: 0.3,
+          opacity: 0,
+          onComplete: () => {
+            currentRoastIndex = (currentRoastIndex + 1) % roastLines.length;
+            roastElement.textContent = roastLines[currentRoastIndex];
+
+            roastElement.classList.add("glitch");
+            setTimeout(() => roastElement.classList.remove("glitch"), 300);
+
+            gsap.to(roastElement, {
+              duration: 0.4,
+              opacity: 1,
+              ease: "power2.out",
+            });
+          },
+        });
+      }
+
+      // Auto-cycle roast bar
+      function startRoastCycle() {
+        setInterval(updateRoastBar, 7000); // Every 7 seconds
+      }
+
+      // Initialize roast cycling when page loads
+      window.addEventListener("load", () => {
+        // Start roasting after 3 seconds
+        setTimeout(startRoastCycle, 3000);
+        // Show initial roast with dramatic entrance
+        setTimeout(() => {
+          const roastElement = document.getElementById("roastText");
+          gsap.fromTo(
+            roastElement,
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }
+          );
+        }, 1000);
+      });
+
+      // Add fade-in animation to sections when they become visible
+      const observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+          if (
+            mutation.type === "attributes" &&
+            mutation.attributeName === "class"
+          ) {
+            const target = mutation.target;
+            if (
+              !target.classList.contains("hidden") &&
+              target.classList.contains("section")
+            ) {
+              target.classList.add("fade-in");
+            }
+          }
+        });
+      });
+
+      // Observe all sections for class changes
+      document.querySelectorAll(".section").forEach((section) => {
+        observer.observe(section, { attributes: true });
+      });
+    </script>
+  </body>
+</html>

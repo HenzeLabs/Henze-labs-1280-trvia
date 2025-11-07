@@ -1,5 +1,5 @@
 """Routes initialization."""
 
-from . import main, game, admin
+from . import main, game
 
-__all__ = ['main', 'game', 'admin']
+__all__ = ['main', 'game']

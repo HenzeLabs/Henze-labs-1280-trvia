@@ -19,12 +19,13 @@ if __name__ == '__main__':
     print("🚀 Starting 1280 Trivia server...")
     print("🌐 Open your browser to: http://localhost:5001")
     print("📱 Players can join on their phones at the same URL")
-    print("⚙️  Admin panel: http://localhost:5001/admin")
     print("\n🎯 Press Ctrl+C to stop the server")
     
     # Run with SocketIO
-    socketio.run(app, 
-                host='0.0.0.0', 
-                port=5001, 
-                debug=True,
+    # IMPORTANT: debug=False to prevent auto-reload from killing background threads during testing
+    socketio.run(app,
+                host='0.0.0.0',
+                port=5001,
+                debug=False,
+                use_reloader=False,
                 allow_unsafe_werkzeug=True)

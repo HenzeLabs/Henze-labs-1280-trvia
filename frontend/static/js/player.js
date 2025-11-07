@@ -8,6 +8,11 @@ class PlayerDashboard {
     this.gameState = "waiting"; // waiting, playing, finished
     this.currentQuestion = null;
     this.hasAnswered = false;
+    this.status = "alive";
+    this.minigameTargets = [];
+    this.finalSprintInfo = { positions: {}, goal: null };
+    this.playerDirectory = {};
+    this.isCreator = sessionStorage.getItem("is_creator") === "true";
 
     this.init();
   }
@@ -15,6 +20,15 @@ class PlayerDashboard {
   init() {
     this.initializeSocket();
     this.loadGameInfo();
+    this.bindEvents();
+  }
+
+  bindEvents() {
+    // Start game button for creator
+    const startBtn = document.getElementById("start-game-btn");
+    if (startBtn) {
+      startBtn.addEventListener("click", () => this.startGame());
+    }
   }
 
   initializeSocket() {
@@ -35,6 +49,11 @@ class PlayerDashboard {
       this.onGameStarted();
     });
 
+    this.socket.on("question_started", (data) => {
+      console.log("Question started received:", data);
+      this.displayQuestion(data.question);
+    });
+
     this.socket.on("new_question", (data) => {
       console.log("New question received:", data);
       this.displayQuestion(data.question);
@@ -49,6 +68,31 @@ class PlayerDashboard {
       console.log("Player list updated:", data);
       this.updatePlayerInfo(data.players);
     });
+
+    this.socket.on("minigame_started", (data) => {
+      this.onMinigameStarted(data);
+    });
+
+    this.socket.on("minigame_results", (data) => {
+      this.onMinigameResults(data);
+    });
+
+    this.socket.on("final_sprint_started", (data) => {
+      this.onFinalSprintStarted(data);
+    });
+
+    this.socket.on("final_sprint_update", (data) => {
+      this.onFinalSprintUpdate(data);
+    });
+
+    this.socket.on("final_sprint_waiting", () => {
+      this.setStatusBanner("Waiting on the rest of the room...", "info");
+    });
+
+    this.socket.on("all_players_answered", (data) => {
+      console.log("All players answered:", data);
+      this.setStatusBanner("Everyone's in! Next question loading...", "info");
+    });
   }
 
   async loadGameInfo() {
@@ -61,6 +105,15 @@ class PlayerDashboard {
         this.roomCode = session.room_code;
         console.log("Room code set to:", this.roomCode);
         app.setText("room-code-display", this.roomCode);
+
+        // Show start button if creator
+        if (this.isCreator) {
+          const startBtn = document.getElementById("start-game-btn");
+          if (startBtn) {
+            startBtn.classList.remove("hidden");
+          }
+        }
+
         this.joinRoom();
       } else {
         console.log("No session found for player");
@@ -105,40 +158,275 @@ class PlayerDashboard {
     }
   }
 
+  async startGame() {
+    if (!this.isCreator) {
+      console.log("Only creator can start the game");
+      return;
+    }
+
+    try {
+      const response = await app.apiCall(`/game/start/${this.roomCode}`, {
+        method: "POST",
+        body: JSON.stringify({
+          player_id: this.playerId,
+        }),
+      });
+
+      if (!response.success) {
+        this.showError(response.message || "Failed to start game");
+      }
+    } catch (error) {
+      console.error("Error starting game:", error);
+      this.showError("Failed to start game");
+    }
+  }
+
   onGameStarted() {
     this.gameState = "playing";
     app.hide("waiting-screen");
     app.show("question-screen");
+
+    // Show status bar and adjust layout
+    const statusBar = document.querySelector(".status-bar");
+    if (statusBar) {
+      statusBar.classList.add("active");
+    }
+    document.body.classList.add("game-active");
+  }
+
+  clearPhaseUI() {
+    [
+      "status-banner",
+      "minigame-panel",
+      "minigame-results",
+      "final-sprint-track",
+    ].forEach((id) => app.hide(id));
+
+    const resultsEl = document.getElementById("minigame-results");
+    if (resultsEl) resultsEl.innerHTML = "";
+  }
+
+  setStatusBanner(message, variant = "info") {
+    const banner = document.getElementById("status-banner");
+    if (!banner) return;
+
+    if (!message) {
+      banner.className = "status-banner hidden";
+      banner.textContent = "";
+      return;
+    }
+
+    banner.textContent = message;
+    banner.className = `status-banner status-${variant}`;
+    app.show("status-banner");
+  }
+
+  showMinigameMessage(text) {
+    const panel = document.getElementById("minigame-panel");
+    const messageEl = document.getElementById("minigame-message");
+    if (!panel || !messageEl) return;
+
+    if (!text) {
+      app.hide("minigame-panel");
+      messageEl.textContent = "";
+      return;
+    }
+
+    messageEl.textContent = text;
+    app.show("minigame-panel");
+  }
+
+  renderMinigameResults(data) {
+    const container = document.getElementById("minigame-results");
+    if (!container) return;
+
+    if (!data || !data.results) {
+      container.innerHTML = "";
+      app.hide("minigame-results");
+      return;
+    }
+
+    const rows = data.results
+      .map((entry) => {
+        const mood = entry.survived ? "status-safe" : "status-dead";
+        const text = entry.survived ? "SURVIVED" : "ELIMINATED";
+        const choice = entry.choice ? ` (picked ${entry.choice})` : "";
+        return `<li class="${mood}"><span>${entry.name}</span><span>${text}${choice}</span></li>`;
+      })
+      .join("");
+
+    container.innerHTML = `
+      <h4>Killing Floor Results</h4>
+      <p>Safe chalice: <strong>${data.safe_answer || "??"}</strong></p>
+      <ul>${rows}</ul>
+    `;
+    app.show("minigame-results");
+  }
+
+  updateFinalSprintTrack(positions = {}, goal = null) {
+    this.finalSprintInfo = { positions, goal };
+    const container = document.getElementById("final-sprint-track");
+    if (!container) return;
+
+    const entries = Object.entries(positions);
+    if (!entries.length) {
+      container.innerHTML = "";
+      app.hide("final-sprint-track");
+      return;
+    }
+
+    const items = entries
+      .map(([playerId, progress]) => {
+        const name = this.lookupPlayerName(playerId);
+        const marker = playerId === this.playerId ? ">> " : "";
+        return `<li><span>${marker}${name}</span><span>${progress}/${
+          goal || "?"
+        }</span></li>`;
+      })
+      .join("");
+
+    container.innerHTML = `
+      <h4>Final Sprint Progress</h4>
+      <p>First to ${goal || "?"} correct answers escapes.</p>
+      <ul>${items}</ul>
+    `;
+    app.show("final-sprint-track");
+  }
+
+  disableAnswerButtons() {
+    document.querySelectorAll(".answer-btn").forEach((btn) => {
+      btn.disabled = true;
+    });
+  }
+
+  enableAnswerButtons() {
+    document.querySelectorAll(".answer-btn").forEach((btn) => {
+      btn.disabled = false;
+    });
+  }
+
+  lookupPlayerName(playerId) {
+    return this.playerDirectory[playerId] || playerId;
+  }
+
+  onMinigameStarted(data) {
+    this.minigameTargets = data.targets || [];
+    const isTarget = this.minigameTargets.includes(this.playerId);
+    if (isTarget) {
+      this.setStatusBanner(
+        "Killing Floor! Pick wisely or become a ghost.",
+        "warning"
+      );
+      this.showMinigameMessage("Tap a chalice before the timer ends.");
+    } else {
+      this.setStatusBanner("You're safe—watch the others risk it all.", "info");
+      this.showMinigameMessage("Sit tight while the unlucky few choose.");
+    }
+  }
+
+  onMinigameResults(data) {
+    this.renderMinigameResults(data);
+  }
+
+  onFinalSprintStarted(data) {
+    this.setStatusBanner(
+      "Final sprint! Every correct answer moves you forward.",
+      "info"
+    );
+    this.updateFinalSprintTrack(data.positions || {}, data.goal);
+  }
+
+  onFinalSprintUpdate(data) {
+    if (data.positions) {
+      this.updateFinalSprintTrack(data.positions, this.finalSprintInfo.goal);
+    }
+
+    if (data.winner_id) {
+      if (data.winner_id === this.playerId) {
+        this.setStatusBanner("You escaped! Legend status secured.", "info");
+      } else {
+        this.setStatusBanner("Final sprint complete!", "info");
+      }
+    }
   }
 
   displayQuestion(question) {
     this.currentQuestion = question;
     this.hasAnswered = false;
+    const phase = question.phase || "question";
+    this.clearPhaseUI();
 
-    app.setText("question-category", question.category);
-    app.setText("question-text", question.question_text);
+    this.minigameTargets = question.targets || this.minigameTargets;
 
-    // Update question counter
-    app.setText("current-question-num", question.id + 1);
+    app.setText("question-category", question.category || "");
+    app.setText("question-text", question.question_text || "");
+    app.setText("current-question-num", (question.id ?? 0) + 1);
 
-    // Clear previous answers
     const answersContainer = document.getElementById("mobile-answers");
     answersContainer.innerHTML = "";
 
-    // Create answer buttons
-    question.answers.forEach((answer, index) => {
+    console.log("Creating answer buttons for question:", question);
+    console.log("Answers array:", question.answers);
+    console.log("Answers container:", answersContainer);
+
+    const isGhost = this.status !== "alive";
+    const isTarget = this.minigameTargets.includes(this.playerId);
+
+    if (phase === "minigame") {
+      if (isTarget) {
+        this.setStatusBanner("Killing Floor! Pick a chalice.", "warning");
+        this.showMinigameMessage(
+          "Choose carefully—the wrong chalice turns you into a ghost."
+        );
+      } else {
+        this.setStatusBanner(
+          "Safe this round. Watch the chaos unfold.",
+          "info"
+        );
+        this.showMinigameMessage(
+          "You're not in danger. Let the others sweat it out."
+        );
+      }
+    } else if (phase === "final_sprint") {
+      this.setStatusBanner(
+        "Final sprint! Every correct answer pulls you closer to the exit.",
+        "info"
+      );
+      this.updateFinalSprintTrack(
+        question.sprint_positions || {},
+        question.sprint_goal
+      );
+    } else if (isGhost) {
+      this.setStatusBanner(
+        "You're a ghost now. Cheer or boo from the sidelines until the final sprint.",
+        "warning"
+      );
+    } else {
+      this.setStatusBanner("");
+    }
+
+    (question.answers || []).forEach((answer, index) => {
       const button = document.createElement("button");
       button.className = "answer-btn mobile-answer";
       button.textContent = `${String.fromCharCode(65 + index)}) ${answer}`;
-      button.onclick = () => this.submitAnswer(answer);
+      button.setAttribute("data-testid", `answer-${index}`); // Add test ID for Playwright
+
+      const canAnswer =
+        phase === "final_sprint" ||
+        (!isGhost && (phase !== "minigame" || isTarget));
+
+      if (canAnswer) {
+        button.onclick = () => this.submitAnswer(answer);
+      } else {
+        button.disabled = true;
+      }
+
       answersContainer.appendChild(button);
     });
 
-    // Start timer
     this.timeRemaining = question.time_remaining || 30;
     this.startTimer();
 
-    // Show question screen, hide feedback
     app.show("question-screen");
     app.hide("waiting-next");
     app.hide("answer-feedback");
@@ -167,11 +455,27 @@ class PlayerDashboard {
   async submitAnswer(answer) {
     if (this.hasAnswered) return;
 
-    this.hasAnswered = true;
+    const phase = this.currentQuestion
+      ? this.currentQuestion.phase || "question"
+      : "question";
+    const isTarget = (this.currentQuestion?.targets || []).includes(
+      this.playerId
+    );
 
-    // Disable all answer buttons
-    const answerButtons = document.querySelectorAll(".answer-btn");
-    answerButtons.forEach((btn) => (btn.disabled = true));
+    if (phase === "question" && this.status !== "alive") {
+      this.showError(
+        "Ghosts can't answer normal questions. Wait for the final sprint!"
+      );
+      return;
+    }
+
+    if (phase === "minigame" && !isTarget) {
+      this.showError("You're safe this round—no need to answer.");
+      return;
+    }
+
+    this.hasAnswered = true;
+    this.disableAnswerButtons();
 
     try {
       const response = await app.apiCall("/game/answer", {
@@ -182,11 +486,41 @@ class PlayerDashboard {
         }),
       });
 
+      if (response.phase === "minigame") {
+        if (response.awaiting) {
+          this.setStatusBanner(
+            "Choice locked. Waiting for the other victims...",
+            "warning"
+          );
+        }
+        return;
+      }
+
+      if (response.phase === "final_sprint") {
+        if (response.awaiting) {
+          this.setStatusBanner(
+            "Answer locked. Waiting on the rest of the room...",
+            "info"
+          );
+        }
+        if (response.question_complete && response.positions) {
+          this.updateFinalSprintTrack(
+            response.positions,
+            this.finalSprintInfo.goal
+          );
+        }
+        return;
+      }
+
       this.showAnswerFeedback(response);
-      this.updateScore(response.total_score);
+      if (typeof response.total_score === "number") {
+        this.updateScore(response.total_score);
+      }
     } catch (error) {
       console.error("Error submitting answer:", error);
       this.showError("Failed to submit answer");
+      this.hasAnswered = false;
+      this.enableAnswerButtons();
     }
   }
 
@@ -195,12 +529,19 @@ class PlayerDashboard {
     const messageDiv = document.getElementById("feedback-message");
     const pointsDiv = document.getElementById("points-earned");
 
-    if (response.is_correct) {
-      messageDiv.textContent = `✅ Correct! "${response.correct_answer}"`;
+    // POLL QUESTIONS: Show vote recorded message
+    if (response.is_poll) {
+      messageDiv.textContent = `Vote recorded! Waiting for results...`;
+      messageDiv.className = "poll-feedback";
+      pointsDiv.textContent = "Scores calculated after everyone votes!";
+    }
+    // NORMAL QUESTIONS: Show correct/incorrect
+    else if (response.is_correct) {
+      messageDiv.textContent = `Correct! "${response.correct_answer}"`;
       messageDiv.className = "correct-feedback";
       pointsDiv.textContent = `+${response.points_earned} points!`;
     } else {
-      messageDiv.textContent = `❌ Wrong! Correct answer: "${response.correct_answer}"`;
+      messageDiv.textContent = `Wrong! Correct answer: "${response.correct_answer}"`;
       messageDiv.className = "incorrect-feedback";
       pointsDiv.textContent = "No points";
     }
@@ -223,7 +564,7 @@ class PlayerDashboard {
     const messageDiv = document.getElementById("feedback-message");
     const pointsDiv = document.getElementById("points-earned");
 
-    messageDiv.textContent = `⏰ Time's up!`;
+    messageDiv.textContent = `Time's up!`;
     messageDiv.className = "timeout-feedback";
     pointsDiv.textContent = "No points";
 
@@ -240,11 +581,19 @@ class PlayerDashboard {
   }
 
   updatePlayerInfo(players) {
-    // Find this player in the list and update rank
-    const thisPlayer = players.find((p) => p.id === this.playerId);
-    if (thisPlayer) {
-      app.setText("current-rank", thisPlayer.rank || "-");
-    }
+    this.playerDirectory = {};
+    players.forEach((player) => {
+      this.playerDirectory[player.id] = player.name;
+      if (player.id === this.playerId) {
+        this.status = player.status || "alive";
+        if (player.rank !== undefined) {
+          app.setText("current-rank", player.rank);
+        }
+        if (player.score !== undefined) {
+          app.setText("player-score", `${player.score} pts`);
+        }
+      }
+    });
   }
 
   showFinalResults(summary) {
@@ -253,7 +602,7 @@ class PlayerDashboard {
     app.show("final-results");
 
     // Find this player's final position
-    const thisPlayer = summary.leaderboard.find((p) => p.id === this.playerId);
+    const thisPlayer = summary.leaderboard.find((p) => p.player_id === this.playerId);
     if (thisPlayer) {
       app.setText("final-rank", `#${thisPlayer.rank}`);
       app.setText("final-score", `${thisPlayer.score} points`);
@@ -266,7 +615,7 @@ class PlayerDashboard {
     summary.leaderboard.forEach((player, index) => {
       const playerDiv = document.createElement("div");
       playerDiv.className = `leaderboard-item ${
-        player.id === this.playerId ? "current-player" : ""
+        player.player_id === this.playerId ? "current-player" : ""
       }`;
       playerDiv.innerHTML = `
                 <span>${player.rank}. ${player.name}</span>
@@ -298,5 +647,5 @@ class PlayerDashboard {
 
 // Initialize when page loads
 document.addEventListener("DOMContentLoaded", () => {
-  new PlayerDashboard();
+  window.player = new PlayerDashboard();
 });

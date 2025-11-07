@@ -46,14 +46,14 @@ python run_server.py
 
 ✅ **Core Logic**: Complete and validated (v1-core-logic-stable)  
 ✅ **Real-time Layer**: Complete and validated (v1.1-realtime-complete)  
-✅ **API Contract**: Frozen and documented (v1-api-contract-stable)  
+✅ **API Contract**: Frozen and documented (v1-api-contract-stable)
 
 **Ready for production use** - All core functionality validated through comprehensive test suite.
 
 ## API Documentation
 
 - 📋 **Contract Specification**: `/docs/api_contract.md` - Complete API documentation
-- 📦 **JSON Schema**: `/docs/api_schema.json` - Machine-readable validation schemas  
+- 📦 **JSON Schema**: `/docs/api_schema.json` - Machine-readable validation schemas
 - 🧪 **Test Suite**: Run `python run_tests.py` for full validation
 
 ## Notes

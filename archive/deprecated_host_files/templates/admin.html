@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel - 1280 Trivia</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Admin Panel</h1>
+        <a href="/" class="btn btn-small">← Back</a>
+      </div>
+
+      <!-- Database Connection Test -->
+      <div class="section">
+        <h2>iMessage Database</h2>
+        <button id="test-connection-btn" class="btn btn-secondary">
+          Test Connection
+        </button>
+        <div id="connection-status"></div>
+      </div>
+
+      <!-- Chat Management -->
+      <div class="section">
+        <h2>Chat Management</h2>
+
+        <div class="admin-row">
+          <button id="load-chats-btn" class="btn btn-primary">
+            Load Available Chats
+          </button>
+          <div id="chat-list"></div>
+        </div>
+
+        <div class="admin-row">
+          <h3>Parse Chat Messages</h3>
+          <div class="form-group">
+            <label for="chat-name-input">Chat Name:</label>
+            <input
+              type="text"
+              id="chat-name-input"
+              placeholder="Enter chat name"
+            />
+          </div>
+          <div class="form-group">
+            <label for="message-limit">Message Limit:</label>
+            <input
+              type="number"
+              id="message-limit"
+              value="1000"
+              min="10"
+              max="10000"
+            />
+          </div>
+          <button id="parse-chat-btn" class="btn btn-success">
+            Parse Messages
+          </button>
+        </div>
+      </div>
+
+      <!-- Question Generation -->
+      <div class="section">
+        <h2>Question Generation</h2>
+
+        <div class="admin-row">
+          <h3>Generate Questions</h3>
+          <div class="form-group">
+            <label for="source-chat">Source Chat (optional):</label>
+            <input
+              type="text"
+              id="source-chat"
+              placeholder="Leave empty for all chats"
+            />
+          </div>
+          <div class="form-group">
+            <label for="question-count">Number of Questions:</label>
+            <input
+              type="number"
+              id="question-count"
+              value="20"
+              min="5"
+              max="100"
+            />
+          </div>
+          <button id="generate-questions-btn" class="btn btn-warning">
+            Generate Questions
+          </button>
+        </div>
+
+        <div class="admin-row">
+          <h3>View Generated Questions</h3>
+          <div class="form-group">
+            <label for="question-category">Category Filter:</label>
+            <select id="question-category">
+              <option value="">All Categories</option>
+              <option value="Receipts">Receipts</option>
+              <option value="Red Flags">Red Flags</option>
+              <option value="Degenerate of the Week">
+                Degenerate of the Week
+              </option>
+              <option value="Random Trivia">Random Trivia</option>
+            </select>
+          </div>
+          <button id="load-questions-btn" class="btn btn-secondary">
+            Load Questions
+          </button>
+        </div>
+      </div>
+
+      <!-- Data Export -->
+      <div class="section">
+        <h2>Data Export</h2>
+
+        <div class="admin-row">
+          <h3>Export Chat to CSV</h3>
+          <div class="form-group">
+            <label for="export-chat-name">Chat Name:</label>
+            <input
+              type="text"
+              id="export-chat-name"
+              placeholder="Enter chat name"
+            />
+          </div>
+          <button id="export-csv-btn" class="btn btn-accent">Export CSV</button>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="section">
+        <h2>Statistics</h2>
+        <button id="load-stats-btn" class="btn btn-secondary">
+          Load Stats
+        </button>
+        <div id="stats-display"></div>
+      </div>
+
+      <!-- Results Area -->
+      <div class="section">
+        <h2>Results</h2>
+        <div id="admin-results"></div>
+      </div>
+
+      <!-- Question Preview -->
+      <div id="questions-preview" class="section hidden">
+        <h2>Question Preview</h2>
+        <div id="questions-list"></div>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+  </body>
+</html>

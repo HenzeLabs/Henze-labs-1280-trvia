@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Lobby Display</title>
+    <style>
+        .hidden {
+            display: none !important;
+        }
+
+        #game-lobby {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 60px;
+            background: #1a1a1a;
+            padding: 40px;
+            color: white;
+        }
+
+        .section {
+            padding: 20px;
+            border: 2px solid red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Testing Lobby Display</h1>
+
+    <div id="game-setup" class="section">
+        <h2>Setup (should disappear)</h2>
+        <p>This is the setup section</p>
+    </div>
+
+    <div id="game-lobby" class="section hidden">
+        <div>
+            <h2>Game Lobby (should appear)</h2>
+            <div id="room-code">ABC123</div>
+            <p>Players: <span id="player-count">0</span></p>
+        </div>
+        <div>
+            <h3>Sidebar</h3>
+            <div id="current-leaderboard">Leaderboard here</div>
+        </div>
+    </div>
+
+    <button onclick="testShowLobby()">Show Lobby (Click Me)</button>
+
+    <div id="debug-output" style="margin-top: 20px; padding: 20px; background: #f0f0f0;">
+        <h3>Debug Output:</h3>
+        <pre id="debug-log"></pre>
+    </div>
+
+    <script>
+        function log(message) {
+            const debugLog = document.getElementById('debug-log');
+            debugLog.textContent += message + '\n';
+            console.log(message);
+        }
+
+        function testShowLobby() {
+            log('=== Starting showLobby test ===');
+
+            const setupEl = document.getElementById("game-setup");
+            const lobbyEl = document.getElementById("game-lobby");
+            const roomCodeEl = document.getElementById("room-code");
+
+            log('Setup element: ' + (setupEl ? 'found' : 'NOT FOUND'));
+            log('Setup classes BEFORE: ' + setupEl.classList.value);
+
+            log('Lobby element: ' + (lobbyEl ? 'found' : 'NOT FOUND'));
+            log('Lobby classes BEFORE: ' + lobbyEl.classList.value);
+            log('Lobby computed display BEFORE: ' + window.getComputedStyle(lobbyEl).display);
+
+            // Hide setup
+            if (setupEl) {
+                setupEl.classList.add("hidden");
+                log('✅ Added hidden class to setup');
+                log('Setup classes AFTER: ' + setupEl.classList.value);
+                log('Setup computed display AFTER: ' + window.getComputedStyle(setupEl).display);
+            }
+
+            // Show lobby
+            if (lobbyEl) {
+                log('Removing hidden class from lobby...');
+                lobbyEl.classList.remove("hidden");
+                log('✅ Removed hidden class from lobby');
+                log('Lobby classes AFTER: ' + lobbyEl.classList.value);
+                log('Lobby computed display AFTER: ' + window.getComputedStyle(lobbyEl).display);
+
+                // Scroll to it
+                setTimeout(() => {
+                    lobbyEl.scrollIntoView({ behavior: "smooth", block: "start" });
+                    log('✅ Scrolled to lobby');
+                }, 100);
+            }
+
+            if (roomCodeEl) {
+                roomCodeEl.textContent = "TEST123";
+                log('✅ Set room code to: TEST123');
+            }
+
+            log('=== Test complete ===');
+        }
+
+        // Log initial state
+        window.addEventListener('load', () => {
+            log('Page loaded');
+            log('Initial lobby display: ' + window.getComputedStyle(document.getElementById('game-lobby')).display);
+        });
+    </script>
+</body>
+</html>

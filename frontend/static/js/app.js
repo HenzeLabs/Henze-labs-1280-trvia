@@ -30,20 +30,35 @@ class TriviaApp {
     // API call wrapper
     async apiCall(endpoint, options = {}) {
         const url = `${this.apiBase}${endpoint}`;
-        const defaultOptions = {
-            headers: {
-                'Content-Type': 'application/json'
+        const defaultHeaders = {
+            'Content-Type': 'application/json'
+        };
+
+        // Add host token if this is a host-only endpoint
+        if (endpoint.includes('/host') || endpoint.includes('/reveal/') || endpoint.includes('/question/')) {
+            // Extract room code from endpoint
+            const roomMatch = endpoint.match(/\/([A-Z0-9]{6})/);
+            if (roomMatch) {
+                const roomCode = roomMatch[1];
+                const hostToken = sessionStorage.getItem(`host_token_${roomCode}`);
+                if (hostToken) {
+                    defaultHeaders['X-Host-Token'] = hostToken;
+                }
             }
+        }
+
+        const defaultOptions = {
+            headers: defaultHeaders
         };
 
         try {
             const response = await fetch(url, { ...defaultOptions, ...options });
             const data = await response.json();
-            
+
             if (!response.ok) {
                 throw new Error(data.message || 'API call failed');
             }
-            
+
             return data;
         } catch (error) {
             console.error('API call error:', error);
@@ -69,6 +84,10 @@ class TriviaApp {
         if (container) {
             container.innerHTML = `<div class="error-message">${message}</div>`;
             container.scrollTop = container.scrollHeight;
+        } else {
+            // Fallback to alert if container doesn't exist
+            console.error('Error:', message);
+            alert(message);
         }
     }
 

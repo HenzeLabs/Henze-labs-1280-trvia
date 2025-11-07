@@ -1,28 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Error - 1280 Trivia</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
     <div class="container">
-        <div class="header">
-            <h1>❌ Error</h1>
+      <div class="header">
+        <h1>Error</h1>
+      </div>
+
+      <div class="section">
+        <div class="error-display">
+          <h2>Oops! Something went wrong</h2>
+          <p>{{ message or "An unexpected error occurred." }}</p>
+
+          <div class="error-actions">
+            <a href="/" class="btn btn-primary">← Go Home</a>
+            <button onclick="history.back()" class="btn btn-secondary">
+              ↶ Go Back
+            </button>
+          </div>
         </div>
-        
-        <div class="section">
-            <div class="error-display">
-                <h2>Oops! Something went wrong</h2>
-                <p>{{ message or "An unexpected error occurred." }}</p>
-                
-                <div class="error-actions">
-                    <a href="/" class="btn btn-primary">← Go Home</a>
-                    <button onclick="history.back()" class="btn btn-secondary">↶ Go Back</button>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
-</body>
+  </body>
 </html>

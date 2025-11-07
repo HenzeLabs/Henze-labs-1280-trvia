@@ -1,46 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>1280 Trivia</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
     <div class="container">
-        <div class="header">
-            <h1>🏠 1280 Trivia</h1>
-            <p class="subtitle">Roast Your Friends Edition</p>
+      <div class="header">
+        <h1>1280 Trivia</h1>
+        <p class="subtitle">Roast Your Friends Edition</p>
+      </div>
+
+      <div class="main-menu">
+        <div class="menu-option">
+          <button id="create-game-btn" data-testid="create-game-btn" class="btn btn-primary btn-large">
+            Start New Game
+          </button>
+          <p>Create a room and display on TV</p>
         </div>
-        
-        <div class="main-menu">
-            <div class="menu-option">
-                <a href="/host" class="btn btn-primary btn-large">
-                    🎤 Host Game
-                </a>
-                <p>Create a new trivia game</p>
-            </div>
-            
-            <div class="menu-option">
-                <a href="/join" class="btn btn-secondary btn-large">
-                    📱 Join Game
-                </a>
-                <p>Join with room code</p>
-            </div>
-            
-            <div class="menu-option">
-                <a href="/admin" class="btn btn-accent btn-large">
-                    ⚙️ Admin Panel
-                </a>
-                <p>Manage questions & data</p>
-            </div>
-        </div>
-        
-        <div class="footer">
-            <p>Powered by your group chat receipts 📱💀</p>
-        </div>
+      </div>
+
+      <div class="footer">
+        <p>Powered by your group chat receipts</p>
+      </div>
     </div>
-    
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-</body>
+    <script>
+      // Simple game creation flow
+      document
+        .getElementById("create-game-btn")
+        .addEventListener("click", function () {
+          const socket = io();
+
+          socket.on("connect", function () {
+            // Auto-create room when button is clicked
+            socket.emit("create_room", {
+              host_name: "Game Master",
+              game_settings: {
+                question_count: 10,
+                time_per_question: 30,
+                difficulty: "mixed",
+              },
+            });
+          });
+
+          socket.on("room_created", function (data) {
+            // Redirect to TV view
+            window.location.href = "/tv/" + data.room_code;
+          });
+
+          socket.on("error", function (data) {
+            alert("Error creating game: " + data.message);
+          });
+        });
+    </script>
+  </body>
 </html>

@@ -1,0 +1,3080 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Complete Game Showcase - 1280 Trivia</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <style>
+      /* Netflix-Style Dark Theme - Matches Actual Game */
+      :root {
+        --netflix-black: #0f0f0f;
+        --netflix-dark: #1a1a1a;
+        --netflix-red: #e50914;
+        --text-white: #ffffff;
+        --text-gray: #666666;
+        --surface-dark: rgba(255, 255, 255, 0.03);
+        --surface-hover: rgba(255, 255, 255, 0.08);
+      }
+
+      body {
+        background: linear-gradient(
+          135deg,
+          var(--netflix-black) 0%,
+          var(--netflix-dark) 100%
+        );
+        color: var(--text-white);
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        padding: 20px;
+        margin: 0;
+      }
+
+      .showcase-container {
+        max-width: 1800px;
+        margin: 0 auto;
+      }
+
+      .showcase-header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 40px;
+        background: var(--surface-dark);
+        border: 1px solid var(--surface-hover);
+        border-radius: 8px;
+        backdrop-filter: blur(10px);
+      }
+
+      .showcase-header h1 {
+        margin: 0 0 10px 0;
+        font-size: 3em;
+        font-weight: 800;
+        letter-spacing: 2px;
+        color: var(--netflix-red);
+      }
+
+      .showcase-header p {
+        color: var(--text-gray);
+        font-size: 1.1em;
+      }
+
+      .disclaimer {
+        background: rgba(229, 9, 20, 0.1);
+        border: 1px solid rgba(229, 9, 20, 0.3);
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+        text-align: center;
+      }
+
+      .disclaimer strong {
+        color: var(--netflix-red);
+      }
+
+      .section {
+        margin-bottom: 80px;
+      }
+
+      .section-title {
+        font-size: 2.5em;
+        margin-bottom: 15px;
+        padding: 25px;
+        background: var(--surface-dark);
+        border: 1px solid var(--surface-hover);
+        border-left: 4px solid var(--netflix-red);
+        border-radius: 8px;
+        text-align: center;
+        font-weight: 700;
+      }
+
+      .section-description {
+        text-align: center;
+        font-size: 1.2em;
+        margin-bottom: 30px;
+        color: var(--text-gray);
+      }
+
+      .screen-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+        gap: 30px;
+        margin-bottom: 30px;
+      }
+
+      .screen-card {
+        background: var(--surface-dark);
+        border-radius: 8px;
+        padding: 20px;
+        border: 1px solid var(--surface-hover);
+        transition: transform 0.2s, border-color 0.2s;
+      }
+
+      .screen-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--netflix-red);
+      }
+
+      .screen-card h3 {
+        margin: 0 0 15px 0;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 6px;
+        font-size: 1.2em;
+        text-align: center;
+        font-weight: 600;
+      }
+
+      .screen-preview {
+        background: linear-gradient(
+          135deg,
+          var(--netflix-black) 0%,
+          var(--netflix-dark) 100%
+        );
+        border-radius: 8px;
+        min-height: 450px;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .mockup {
+        padding: 25px;
+      }
+
+      /* All game modes use the same Netflix dark theme */
+      .preview-player,
+      .preview-host,
+      .preview-tv,
+      .preview-receipts,
+      .preview-roast,
+      .preview-killing-floor,
+      .preview-final-sprint {
+        background: linear-gradient(
+          135deg,
+          var(--netflix-black) 0%,
+          var(--netflix-dark) 100%
+        );
+        min-height: 450px;
+      }
+
+      .back-btn {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 30px;
+        background: var(--netflix-red);
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 600;
+        z-index: 1000;
+        border: none;
+        transition: all 0.2s;
+      }
+
+      .back-btn:hover {
+        background: #b20710;
+        transform: translateY(-2px);
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.6;
+        }
+      }
+
+      .game-type-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        background: var(--netflix-red);
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="/" class="back-btn">← Back to Home</a>
+
+    <div class="showcase-container">
+      <div class="showcase-header">
+        <h1>🎮 1280 TRIVIA SHOWCASE</h1>
+        <p style="font-size: 1.2em; margin-top: 15px">
+          All 8 Game Modes • Netflix-Style Dark UI
+        </p>
+
+        <div class="disclaimer">
+          <strong>⚠️ ACTUAL GAME PREVIEW - NETFLIX DARK UI</strong><br />
+          This showcase displays your real game interface. All 8 game modes use
+          the same<br />
+          <strong>Netflix-inspired dark theme (#0f0f0f → #1a1a1a)</strong> with
+          <strong>consistent red accents (#e50914)</strong>.<br />
+          Game modes differ by
+          <strong>content, mechanics, and question types</strong> — not by
+          visual styling.
+        </div>
+      </div>
+
+      <!-- Quick Reference -->
+      <div class="section" style="margin-bottom: 60px">
+        <div
+          style="
+            background: var(--surface-dark);
+            border: 1px solid var(--surface-hover);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+          "
+        >
+          <h3
+            style="
+              font-size: 1.8em;
+              margin-bottom: 20px;
+              color: var(--netflix-red);
+            "
+          >
+            Unified Design System
+          </h3>
+          <div
+            style="
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+              gap: 20px;
+              margin-top: 25px;
+            "
+          >
+            <div>
+              <strong style="color: var(--netflix-red)">Background</strong
+              ><br />
+              <span style="color: var(--text-gray)"
+                >#0f0f0f → #1a1a1a gradient</span
+              >
+            </div>
+            <div>
+              <strong style="color: var(--netflix-red)">Primary Accent</strong
+              ><br />
+              <span style="color: var(--text-gray)">Netflix Red #e50914</span>
+            </div>
+            <div>
+              <strong style="color: var(--netflix-red)">Typography</strong
+              ><br />
+              <span style="color: var(--text-gray)">Inter + Bebas Neue</span>
+            </div>
+            <div>
+              <strong style="color: var(--netflix-red)">Consistency</strong
+              ><br />
+              <span style="color: var(--text-gray)">Same UI, All 8 Modes</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== GAME MODE 1: RECEIPTS ==================== -->
+      <div class="section">
+        <h2 class="section-title">📱 MODE 1: RECEIPTS</h2>
+        <p class="section-description">
+          "Who said this?" - Real iMessage chat history exposed<br />
+          <em style="color: var(--text-gray); font-size: 0.9em"
+            >Same Netflix dark UI • Category: "RECEIPTS"</em
+          >
+        </p>
+
+        <div class="screen-grid">
+          <!-- Player View: Receipts Question -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge">RECEIPTS</span><br />Player View
+            </h3>
+            <div class="screen-preview preview-receipts">
+              <div class="mockup">
+                <div style="text-align: center">
+                  <!-- Netflix-style header -->
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      padding: 15px;
+                      border-radius: 6px;
+                      margin-bottom: 20px;
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                    "
+                  >
+                    <p
+                      style="
+                        margin: 5px 0;
+                        font-size: 1.1em;
+                        color: var(--netflix-red);
+                        font-weight: 700;
+                        letter-spacing: 1px;
+                      "
+                    >
+                      RECEIPTS
+                    </p>
+                    <p style="margin: 5px 0; color: var(--text-gray)">18s</p>
+                  </div>
+
+                  <!-- Question text - white, no emojis -->
+                  <h2
+                    style="
+                      font-size: 1.8em;
+                      margin-bottom: 30px;
+                      line-height: 1.3;
+                      font-weight: 700;
+                      color: white;
+                    "
+                  >
+                    "I locked myself out in my underwear again"
+                  </h2>
+
+                  <!-- WHO SAID THIS box with glassy look -->
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      padding: 12px;
+                      border-radius: 6px;
+                      margin-bottom: 25px;
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <h3
+                      style="
+                        margin: 0;
+                        font-size: 1.2em;
+                        color: var(--text-gray);
+                      "
+                    >
+                      WHO SAID THIS?
+                    </h3>
+                  </div>
+
+                  <!-- Netflix-style answer buttons -->
+                  <div style="display: grid; gap: 12px">
+                    <button
+                      style="
+                        padding: 16px 20px;
+                        font-size: 1.05em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                        transition: all 0.2s;
+                        text-align: left;
+                      "
+                    >
+                      Sarah
+                    </button>
+                    <button
+                      style="
+                        padding: 16px 20px;
+                        font-size: 1.05em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                        transition: all 0.2s;
+                        text-align: left;
+                      "
+                    >
+                      Mike
+                    </button>
+                    <button
+                      style="
+                        padding: 16px 20px;
+                        font-size: 1.05em;
+                        background: var(--netflix-red);
+                        border: 2px solid var(--netflix-red);
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                        text-align: left;
+                      "
+                    >
+                      Alex ✓
+                    </button>
+                    <button
+                      style="
+                        padding: 16px 20px;
+                        font-size: 1.05em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                        transition: all 0.2s;
+                        text-align: left;
+                      "
+                    >
+                      Jamie
+                    </button>
+                  </div>
+
+                  <!-- Context - glassy look like buttons -->
+                  <div
+                    style="
+                      margin-top: 20px;
+                      padding: 12px;
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      border-radius: 6px;
+                      font-size: 0.9em;
+                      color: var(--text-gray);
+                      font-style: italic;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    iMessage • 1280 Group Chat
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TV View: Receipts Question -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge">RECEIPTS</span><br />Host/TV View
+            </h3>
+            <div class="screen-preview preview-receipts">
+              <div class="mockup">
+                <div style="text-align: center; padding: 15px">
+                  <div
+                    style="
+                      display: flex;
+                      justify-content: space-between;
+                      margin-bottom: 25px;
+                      font-size: 1.1em;
+                    "
+                  >
+                    <span
+                      style="
+                        background: var(--surface-dark);
+                        padding: 10px 20px;
+                        border-radius: 6px;
+                        border: 1px solid var(--surface-hover);
+                        color: var(--netflix-red);
+                        font-weight: 700;
+                      "
+                      >RECEIPTS</span
+                    >
+                    <span
+                      style="
+                        background: var(--surface-dark);
+                        padding: 10px 20px;
+                        border-radius: 6px;
+                        border: 1px solid var(--surface-hover);
+                        font-weight: 600;
+                      "
+                      >15s</span
+                    >
+                    <span
+                      style="
+                        background: var(--surface-dark);
+                        padding: 10px 20px;
+                        border-radius: 6px;
+                        border: 1px solid var(--surface-hover);
+                      "
+                      >3/4 answered</span
+                    >
+                  </div>
+
+                  <h2
+                    style="
+                      font-size: 2em;
+                      margin-bottom: 30px;
+                      line-height: 1.3;
+                      color: white;
+                    "
+                  >
+                    "I locked myself out in my<br />underwear again"
+                  </h2>
+
+                  <div
+                    style="
+                      font-size: 1.5em;
+                      margin-bottom: 25px;
+                      padding: 16px;
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      border-radius: 6px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <h3 style="margin: 0; color: white">WHO SAID THIS?</h3>
+                  </div>
+
+                  <div
+                    style="
+                      display: grid;
+                      grid-template-columns: 1fr 1fr;
+                      gap: 15px;
+                      font-size: 1.2em;
+                    "
+                  >
+                    <div
+                      style="
+                        padding: 20px;
+                        background: rgba(255, 255, 255, 0.03);
+                        border-radius: 6px;
+                        border: 1px solid rgba(255, 255, 255, 0.1);
+                        backdrop-filter: blur(10px);
+                      "
+                    >
+                      Sarah<br /><small style="color: var(--text-gray)"
+                        >1 vote</small
+                      >
+                    </div>
+                    <div
+                      style="
+                        padding: 20px;
+                        background: rgba(255, 255, 255, 0.03);
+                        border-radius: 6px;
+                        border: 1px solid rgba(255, 255, 255, 0.1);
+                        backdrop-filter: blur(10px);
+                      "
+                    >
+                      Mike<br /><small style="color: var(--text-gray)"
+                        >0 votes</small
+                      >
+                    </div>
+                    <div
+                      style="
+                        padding: 20px;
+                        background: rgba(255, 255, 255, 0.03);
+                        border-radius: 6px;
+                        border: 1px solid rgba(255, 255, 255, 0.1);
+                        backdrop-filter: blur(10px);
+                      "
+                    >
+                      Alex<br /><small style="color: var(--text-gray)"
+                        >2 votes</small
+                      >
+                    </div>
+                    <div
+                      style="
+                        padding: 20px;
+                        background: rgba(255, 255, 255, 0.03);
+                        border-radius: 6px;
+                        border: 1px solid rgba(255, 255, 255, 0.1);
+                        backdrop-filter: blur(10px);
+                      "
+                    >
+                      Jamie<br /><small style="color: var(--text-gray)"
+                        >0 votes</small
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TV View: Receipts Answer Reveal -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge badge-receipts">RECEIPTS</span
+              ><br />TV: Answer Reveal
+            </h3>
+            <div class="screen-preview preview-receipts">
+              <div class="mockup">
+                <div style="text-align: center; padding: 15px">
+                  <h2
+                    style="font-size: 2.5em; margin-bottom: 30px; color: white"
+                  >
+                    THE RECEIPTS ARE IN
+                  </h2>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 35px;
+                      border-radius: 12px;
+                      margin-bottom: 30px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p
+                      style="
+                        font-size: 1.8em;
+                        font-weight: bold;
+                        line-height: 1.4;
+                        margin-bottom: 25px;
+                        color: white;
+                      "
+                    >
+                      "I locked myself out in my<br />underwear again"
+                    </p>
+                    <div
+                      style="
+                        background: var(--netflix-red);
+                        padding: 25px;
+                        border-radius: 8px;
+                        margin-top: 20px;
+                      "
+                    >
+                      <p
+                        style="
+                          font-size: 2.5em;
+                          font-weight: bold;
+                          color: white;
+                          margin: 0;
+                        "
+                      >
+                        ALEX SAID THIS
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 25px;
+                      border-radius: 8px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p
+                      style="
+                        font-size: 1.3em;
+                        margin-bottom: 15px;
+                        color: white;
+                      "
+                    >
+                      Who got it right:
+                    </p>
+                    <p style="font-size: 1.5em; color: #4ade80">
+                      Sarah (+100) • Mike (+100)
+                    </p>
+                    <p
+                      style="
+                        font-size: 1.2em;
+                        margin-top: 10px;
+                        opacity: 0.6;
+                        color: white;
+                      "
+                    >
+                      Alex • Jamie
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== GAME MODE 2: RED FLAGS / ROAST ==================== -->
+      <div class="section">
+        <h2 class="section-title">🔥 MODE 2: RED FLAGS / ROAST</h2>
+        <p class="section-description">
+          AI-predicted answers based on chat patterns<br />
+          <em style="color: var(--text-gray); font-size: 0.9em"
+            >Same Netflix dark UI • Category: "RED FLAGS"</em
+          >
+        </p>
+
+        <div class="screen-grid">
+          <!-- Player View: Roast Question -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge badge-roast">RED FLAGS</span
+              ><br />Player: Question
+            </h3>
+            <div class="screen-preview preview-roast">
+              <div class="mockup">
+                <div style="text-align: center">
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 15px;
+                      border-radius: 6px;
+                      margin-bottom: 20px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p
+                      style="
+                        margin: 5px 0;
+                        font-size: 1.1em;
+                        color: var(--netflix-red);
+                        font-weight: 700;
+                      "
+                    >
+                      RED FLAGS | Round 3
+                    </p>
+                    <p style="margin: 5px 0; color: white">20s</p>
+                  </div>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 30px;
+                      border-radius: 8px;
+                      margin-bottom: 25px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <h2
+                      style="
+                        font-size: 1.8em;
+                        line-height: 1.4;
+                        margin-bottom: 15px;
+                        color: white;
+                      "
+                    >
+                      Who's most likely to ghost someone after one date?
+                    </h2>
+                    <p
+                      style="
+                        font-size: 0.95em;
+                        opacity: 0.7;
+                        margin-top: 15px;
+                        color: var(--text-gray);
+                      "
+                    >
+                      AI analyzed your chats... it knows.
+                    </p>
+                  </div>
+
+                  <div style="display: grid; gap: 15px">
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      Sarah
+                    </button>
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      Mike
+                    </button>
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      Alex
+                    </button>
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      Jamie
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TV View: Roast Answer -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge badge-roast">RED FLAGS</span
+              ><br />TV: AI Reveal
+            </h3>
+            <div class="screen-preview preview-roast">
+              <div class="mockup">
+                <div style="text-align: center; padding: 15px">
+                  <h2
+                    style="font-size: 2.2em; margin-bottom: 25px; color: white"
+                  >
+                    THE AI HAS SPOKEN
+                  </h2>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 35px;
+                      border-radius: 8px;
+                      margin-bottom: 30px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p
+                      style="
+                        font-size: 1.6em;
+                        margin-bottom: 25px;
+                        color: white;
+                      "
+                    >
+                      Who's most likely to ghost someone<br />after one date?
+                    </p>
+
+                    <div
+                      style="
+                        background: var(--netflix-red);
+                        padding: 30px;
+                        border-radius: 8px;
+                      "
+                    >
+                      <p
+                        style="
+                          font-size: 2.8em;
+                          font-weight: bold;
+                          margin: 0;
+                          color: white;
+                        "
+                      >
+                        JAMIE
+                      </p>
+                      <p
+                        style="font-size: 1.2em; margin-top: 15px; color: white"
+                      >
+                        Based on chat history
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 20px;
+                      border-radius: 8px;
+                      font-size: 1.3em;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p style="color: #4ade80">
+                      Got it right: Sarah, Mike, Alex (+100 each)
+                    </p>
+                    <p style="margin-top: 10px; opacity: 0.6; color: white">
+                      Jamie (voted for themselves)
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== GAME MODE 3: MOST LIKELY TO (Scored) ==================== -->
+      <div class="section">
+        <h2 class="section-title">🎯 GAME 3: MOST LIKELY TO (Scored)</h2>
+        <p
+          style="
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+          "
+        >
+          "Degenerate of the Week" - Predetermined savage callouts
+        </p>
+
+        <div class="screen-grid">
+          <!-- Player View: Most Likely Question -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge badge-most-likely">MOST LIKELY</span
+              ><br />Player: Question
+            </h3>
+            <div class="screen-preview preview-player">
+              <div class="mockup">
+                <div style="text-align: center">
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 15px;
+                      border-radius: 6px;
+                      margin-bottom: 20px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p
+                      style="
+                        margin: 5px 0;
+                        font-size: 1.1em;
+                        color: var(--netflix-red);
+                        font-weight: 700;
+                      "
+                    >
+                      DEGENERATE OF THE WEEK
+                    </p>
+                    <p style="margin: 5px 0; color: white">Round 5 | 20s</p>
+                  </div>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 25px;
+                      border-radius: 8px;
+                      margin-bottom: 25px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <h3
+                      style="
+                        font-size: 1.6em;
+                        line-height: 1.4;
+                        margin: 0;
+                        color: white;
+                      "
+                    >
+                      Who's most likely to sleep with their ex Taylor who they
+                      share 2 dogs with?
+                    </h3>
+                    <p
+                      style="
+                        font-size: 0.9em;
+                        margin-top: 15px;
+                        opacity: 0.7;
+                        color: var(--text-gray);
+                      "
+                    >
+                      (There's a correct answer)
+                    </p>
+                  </div>
+
+                  <div style="display: grid; gap: 15px">
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      Benny
+                    </button>
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      Sarah
+                    </button>
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      Mike
+                    </button>
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      Alex
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TV View: Most Likely Answer -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge badge-most-likely">MOST LIKELY</span
+              ><br />TV: The Callout
+            </h3>
+            <div class="screen-preview preview-player">
+              <div class="mockup">
+                <div style="text-align: center; padding: 10px">
+                  <h2 style="font-size: 2em; margin-bottom: 25px; color: white">
+                    THE CORRECT ANSWER IS...
+                  </h2>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 30px;
+                      border-radius: 8px;
+                      margin-bottom: 30px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p
+                      style="
+                        font-size: 1.4em;
+                        margin-bottom: 25px;
+                        color: white;
+                      "
+                    >
+                      Who's most likely to sleep with their ex<br />Taylor who
+                      they share 2 dogs with?
+                    </p>
+
+                    <div
+                      style="
+                        background: var(--netflix-red);
+                        padding: 30px;
+                        border-radius: 8px;
+                      "
+                    >
+                      <p
+                        style="
+                          font-size: 3em;
+                          font-weight: bold;
+                          margin: 0;
+                          color: white;
+                        "
+                      >
+                        BENNY
+                      </p>
+                      <p
+                        style="font-size: 1.3em; margin-top: 12px; color: white"
+                      >
+                        Called out
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 20px;
+                      border-radius: 8px;
+                      font-size: 1.2em;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p style="margin: 8px 0; color: #4ade80">
+                      Sarah, Mike, Alex: +100 pts
+                    </p>
+                    <p style="margin: 8px 0; opacity: 0.6; color: white">
+                      Benny: Wrong (tried to hide it)
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== GAME MODE 4: TRIVIA ==================== -->
+      <div class="section">
+        <h2 class="section-title">🧠 GAME 4: TRIVIA (Mixed)</h2>
+        <p
+          style="
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+          "
+        >
+          50/50 mix of regular trivia + sex trivia (disguised as normal
+          questions)
+        </p>
+
+        <div class="screen-grid">
+          <!-- Regular Trivia -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge badge-trivia">TRIVIA</span
+              ><br />Player: Regular Question
+            </h3>
+            <div class="screen-preview preview-player">
+              <div class="mockup">
+                <div style="text-align: center">
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 15px;
+                      border-radius: 6px;
+                      margin-bottom: 20px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p
+                      style="
+                        margin: 5px 0;
+                        font-size: 1.1em;
+                        color: var(--netflix-red);
+                        font-weight: 700;
+                      "
+                    >
+                      GENERAL KNOWLEDGE
+                    </p>
+                    <p style="margin: 5px 0; color: white">Round 7 | 18s</p>
+                  </div>
+
+                  <h3
+                    style="margin-bottom: 30px; font-size: 1.4em; color: white"
+                  >
+                    Which planet is closest to the sun?
+                  </h3>
+
+                  <div style="display: grid; gap: 15px">
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      A) Venus
+                    </button>
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      B) Mercury
+                    </button>
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      C) Mars
+                    </button>
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      D) Earth
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sex Trivia (disguised) -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge badge-trivia">TRIVIA</span
+              ><br />Player: "Sexy Time" Question
+            </h3>
+            <div class="screen-preview preview-player">
+              <div class="mockup">
+                <div style="text-align: center">
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 15px;
+                      border-radius: 6px;
+                      margin-bottom: 20px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p
+                      style="
+                        margin: 5px 0;
+                        font-size: 1.1em;
+                        color: var(--netflix-red);
+                        font-weight: 700;
+                      "
+                    >
+                      GENERAL KNOWLEDGE
+                    </p>
+                    <p style="margin: 5px 0; color: white">Round 8 | 18s</p>
+                  </div>
+
+                  <h3
+                    style="margin-bottom: 30px; font-size: 1.4em; color: white"
+                  >
+                    What's the most popular category globally on adult websites?
+                  </h3>
+                  <p
+                    style="
+                      font-size: 0.85em;
+                      opacity: 0.6;
+                      margin-bottom: 20px;
+                      color: var(--text-gray);
+                    "
+                  >
+                    Yeah, we went there
+                  </p>
+
+                  <div style="display: grid; gap: 15px">
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      A) Amateur
+                    </button>
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      B) Japanese
+                    </button>
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      C) Lesbian
+                    </button>
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      D) MILF
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TV View: Trivia Answer -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge badge-trivia">TRIVIA</span><br />TV:
+              Answer Reveal
+            </h3>
+            <div class="screen-preview preview-tv">
+              <div class="mockup">
+                <div style="text-align: center; padding: 15px">
+                  <h2 style="font-size: 2em; margin-bottom: 25px; color: white">
+                    Correct Answer:
+                  </h2>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 35px;
+                      border-radius: 8px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <h3
+                      style="
+                        font-size: 1.7em;
+                        margin-bottom: 40px;
+                        color: white;
+                      "
+                    >
+                      What's the most popular category globally<br />on adult
+                      websites?
+                    </h3>
+
+                    <div
+                      style="
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 20px;
+                        font-size: 1.3em;
+                      "
+                    >
+                      <div
+                        style="
+                          padding: 25px;
+                          background: rgba(239, 68, 68, 0.1);
+                          border-radius: 8px;
+                          border: 2px solid rgba(239, 68, 68, 0.4);
+                        "
+                      >
+                        <span style="color: white"
+                          ><strong>A)</strong> Amateur</span
+                        ><br />
+                        <small
+                          style="
+                            margin-top: 8px;
+                            display: block;
+                            color: var(--text-gray);
+                          "
+                          >1 player</small
+                        >
+                      </div>
+                      <div
+                        style="
+                          padding: 25px;
+                          background: rgba(239, 68, 68, 0.1);
+                          border-radius: 8px;
+                          border: 2px solid rgba(239, 68, 68, 0.4);
+                        "
+                      >
+                        <span style="color: white"
+                          ><strong>B)</strong> Japanese</span
+                        ><br />
+                        <small
+                          style="
+                            margin-top: 8px;
+                            display: block;
+                            color: var(--text-gray);
+                          "
+                          >0 players</small
+                        >
+                      </div>
+                      <div
+                        style="
+                          padding: 25px;
+                          background: rgba(74, 222, 128, 0.15);
+                          border-radius: 8px;
+                          border: 3px solid #4ade80;
+                        "
+                      >
+                        <span style="color: white"
+                          ><strong>C)</strong> Lesbian</span
+                        ><br />
+                        <small
+                          style="
+                            margin-top: 8px;
+                            display: block;
+                            color: #4ade80;
+                          "
+                          >2 players ✓</small
+                        >
+                      </div>
+                      <div
+                        style="
+                          padding: 25px;
+                          background: rgba(239, 68, 68, 0.1);
+                          border-radius: 8px;
+                          border: 2px solid rgba(239, 68, 68, 0.4);
+                        "
+                      >
+                        <span style="color: white"
+                          ><strong>D)</strong> MILF</span
+                        ><br />
+                        <small
+                          style="
+                            margin-top: 8px;
+                            display: block;
+                            color: var(--text-gray);
+                          "
+                          >1 player</small
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== GAME MODE 5: POLL / VOTING ==================== -->
+      <div class="section">
+        <h2 class="section-title">
+          🗳️ GAME 5: POLL / WHO'S MOST LIKELY (Voting)
+        </h2>
+        <p
+          style="
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+          "
+        >
+          Players vote - highest votes wins (no "correct" answer)
+        </p>
+
+        <div class="screen-grid">
+          <!-- Player View: Poll Question -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge badge-poll">POLL</span><br />Player:
+              Voting Question
+            </h3>
+            <div class="screen-preview preview-host">
+              <div class="mockup">
+                <div style="text-align: center">
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 15px;
+                      border-radius: 6px;
+                      margin-bottom: 20px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p
+                      style="
+                        margin: 5px 0;
+                        font-size: 1.1em;
+                        color: var(--netflix-red);
+                        font-weight: 700;
+                      "
+                    >
+                      WHO'S MOST LIKELY
+                    </p>
+                    <p style="margin: 5px 0; color: white">Round 10 | 20s</p>
+                  </div>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 25px;
+                      border-radius: 8px;
+                      margin-bottom: 25px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <h3
+                      style="
+                        font-size: 1.6em;
+                        line-height: 1.4;
+                        margin-bottom: 15px;
+                        color: white;
+                      "
+                    >
+                      Who's most likely to have sex in an Uber?
+                    </h3>
+                    <p
+                      style="
+                        font-size: 0.9em;
+                        opacity: 0.7;
+                        color: var(--text-gray);
+                      "
+                    >
+                      Vote for someone - most votes wins
+                    </p>
+                  </div>
+
+                  <div style="display: grid; gap: 15px">
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      Sarah
+                    </button>
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      Mike
+                    </button>
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      Alex
+                    </button>
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      Jamie
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TV View: Poll Results -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge badge-poll">POLL</span><br />TV:
+              Voting Results
+            </h3>
+            <div class="screen-preview preview-host">
+              <div class="mockup">
+                <div style="text-align: center; padding: 10px">
+                  <h2 style="font-size: 2em; margin-bottom: 25px; color: white">
+                    THE VOTES ARE IN
+                  </h2>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 30px;
+                      border-radius: 8px;
+                      margin-bottom: 25px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p
+                      style="
+                        font-size: 1.5em;
+                        margin-bottom: 30px;
+                        color: white;
+                      "
+                    >
+                      Who's most likely to have sex in an Uber?
+                    </p>
+
+                    <div
+                      style="
+                        background: var(--netflix-red);
+                        padding: 30px;
+                        border-radius: 8px;
+                        margin-bottom: 25px;
+                      "
+                    >
+                      <p
+                        style="
+                          font-size: 2.8em;
+                          font-weight: bold;
+                          margin: 0;
+                          color: white;
+                        "
+                      >
+                        ALEX WINS
+                      </p>
+                      <p
+                        style="font-size: 1.3em; margin-top: 12px; color: white"
+                      >
+                        3 votes • +300 points
+                      </p>
+                    </div>
+
+                    <div
+                      style="
+                        text-align: left;
+                        max-width: 500px;
+                        margin: 0 auto;
+                        font-size: 1.2em;
+                      "
+                    >
+                      <div
+                        style="
+                          margin: 12px 0;
+                          padding: 12px;
+                          background: rgba(255, 255, 255, 0.03);
+                          border: 1px solid rgba(255, 255, 255, 0.1);
+                          border-radius: 8px;
+                        "
+                      >
+                        <div
+                          style="
+                            display: flex;
+                            justify-content: space-between;
+                            color: white;
+                          "
+                        >
+                          <span>Mike</span>
+                          <span>1 vote (+100)</span>
+                        </div>
+                      </div>
+                      <div
+                        style="
+                          margin: 12px 0;
+                          padding: 12px;
+                          background: rgba(255, 255, 255, 0.03);
+                          border: 1px solid rgba(255, 255, 255, 0.1);
+                          border-radius: 8px;
+                          opacity: 0.5;
+                        "
+                      >
+                        <div
+                          style="
+                            display: flex;
+                            justify-content: space-between;
+                            color: white;
+                          "
+                        >
+                          <span>Sarah</span>
+                          <span>0 votes</span>
+                        </div>
+                      </div>
+                      <div
+                        style="
+                          margin: 12px 0;
+                          padding: 12px;
+                          background: rgba(255, 255, 255, 0.03);
+                          border: 1px solid rgba(255, 255, 255, 0.1);
+                          border-radius: 8px;
+                          opacity: 0.5;
+                        "
+                      >
+                        <div
+                          style="
+                            display: flex;
+                            justify-content: space-between;
+                            color: white;
+                          "
+                        >
+                          <span>Jamie</span>
+                          <span>0 votes</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== GAME MODE 6: KILLING FLOOR ==================== -->
+      <div class="section">
+        <h2 class="section-title">⚰️ MODE 6: KILLING FLOOR (Minigame)</h2>
+        <p class="section-description">
+          Get a question wrong? Choose a chalice - one is poisoned 💀<br />
+          <em style="color: var(--text-gray); font-size: 0.9em"
+            >Same Netflix dark UI • Phase: "minigame"</em
+          >
+        </p>
+
+        <div class="screen-grid">
+          <!-- Player View: Killing Floor -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge badge-killing-floor"
+                >KILLING FLOOR</span
+              ><br />Player: Choose Wisely
+            </h3>
+            <div class="screen-preview preview-killing-floor">
+              <div class="mockup">
+                <div style="text-align: center">
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid var(--netflix-red);
+                      padding: 15px;
+                      border-radius: 6px;
+                      margin-bottom: 20px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p
+                      style="
+                        margin: 5px 0;
+                        font-size: 1.2em;
+                        font-weight: bold;
+                        color: var(--netflix-red);
+                      "
+                    >
+                      KILLING FLOOR
+                    </p>
+                    <p style="margin: 5px 0; font-size: 0.9em; color: white">
+                      You got the question wrong...
+                    </p>
+                  </div>
+
+                  <h2
+                    style="
+                      margin-bottom: 20px;
+                      margin-top: 40px;
+                      font-size: 1.6em;
+                      color: var(--netflix-red);
+                    "
+                  >
+                    YOU FLUNKED THE QUESTION
+                  </h2>
+
+                  <p
+                    style="
+                      font-size: 1.3em;
+                      margin-bottom: 30px;
+                      line-height: 1.5;
+                      color: white;
+                    "
+                  >
+                    Choose a chalice.<br />
+                    One is poisoned.<br />
+                    Choose wrong = become a GHOST
+                  </p>
+
+                  <div
+                    style="
+                      display: grid;
+                      grid-template-columns: 1fr 1fr;
+                      gap: 20px;
+                      margin-top: 30px;
+                    "
+                  >
+                    <button
+                      style="
+                        padding: 30px;
+                        font-size: 3em;
+                        background: rgba(255, 255, 255, 0.03);
+                        border: 2px solid rgba(255, 255, 255, 0.1);
+                        border-radius: 8px;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                        backdrop-filter: blur(10px);
+                      "
+                    >
+                      🍷
+                    </button>
+                    <button
+                      style="
+                        padding: 30px;
+                        font-size: 3em;
+                        background: rgba(255, 255, 255, 0.03);
+                        border: 2px solid rgba(255, 255, 255, 0.1);
+                        border-radius: 8px;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                        backdrop-filter: blur(10px);
+                      "
+                    >
+                      🍷
+                    </button>
+                  </div>
+
+                  <p
+                    style="
+                      font-size: 0.9em;
+                      margin-top: 20px;
+                      color: var(--text-gray);
+                    "
+                  >
+                    Choose carefully... 10s
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Player View: You're a Ghost -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge badge-killing-floor"
+                >KILLING FLOOR</span
+              ><br />Player: You're Dead
+            </h3>
+            <div class="screen-preview preview-killing-floor">
+              <div class="mockup">
+                <div style="text-align: center; padding-top: 50px">
+                  <div style="font-size: 6em; margin-bottom: 30px">👻</div>
+
+                  <h1
+                    style="
+                      font-size: 2.5em;
+                      margin-bottom: 20px;
+                      color: var(--netflix-red);
+                    "
+                  >
+                    YOU'RE A GHOST
+                  </h1>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid var(--netflix-red);
+                      padding: 30px;
+                      border-radius: 8px;
+                      margin-bottom: 30px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p style="font-size: 1.4em; line-height: 1.6; color: white">
+                      You chose the poisoned chalice<br />
+                      You're eliminated from scoring...
+                    </p>
+                  </div>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 25px;
+                      border-radius: 8px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p
+                      style="
+                        font-size: 1.2em;
+                        margin-bottom: 15px;
+                        color: #4ade80;
+                      "
+                    >
+                      But don't worry
+                    </p>
+                    <p style="font-size: 1.1em; line-height: 1.5; color: white">
+                      You can come back to life during<br />
+                      <strong style="color: var(--netflix-red)"
+                        >FINAL SPRINT</strong
+                      >
+                      and score points
+                    </p>
+                  </div>
+
+                  <p style="margin-top: 30px; color: var(--text-gray)">
+                    Spectating for now...
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TV View: Killing Floor Results -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge badge-killing-floor"
+                >KILLING FLOOR</span
+              ><br />TV: Who Survived?
+            </h3>
+            <div class="screen-preview preview-killing-floor">
+              <div class="mockup">
+                <div style="text-align: center; padding: 10px">
+                  <h2
+                    style="font-size: 2.2em; margin-bottom: 25px; color: white"
+                  >
+                    KILLING FLOOR RESULTS
+                  </h2>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid var(--netflix-red);
+                      padding: 30px;
+                      border-radius: 8px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p
+                      style="
+                        font-size: 1.4em;
+                        margin-bottom: 30px;
+                        color: white;
+                      "
+                    >
+                      3 players chose wrong answers...
+                    </p>
+
+                    <div
+                      style="
+                        text-align: left;
+                        max-width: 600px;
+                        margin: 0 auto;
+                        font-size: 1.3em;
+                      "
+                    >
+                      <div
+                        style="
+                          padding: 20px;
+                          background: rgba(74, 222, 128, 0.1);
+                          border-radius: 8px;
+                          margin: 15px 0;
+                          border: 2px solid #4ade80;
+                        "
+                      >
+                        <div
+                          style="
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            color: white;
+                          "
+                        >
+                          <span>Sarah - SURVIVED</span>
+                          <span style="font-size: 1.5em">😅</span>
+                        </div>
+                      </div>
+
+                      <div
+                        style="
+                          padding: 20px;
+                          background: rgba(229, 9, 20, 0.1);
+                          border-radius: 8px;
+                          margin: 15px 0;
+                          border: 2px solid var(--netflix-red);
+                        "
+                      >
+                        <div
+                          style="
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            color: white;
+                          "
+                        >
+                          <span>Mike - POISONED</span>
+                          <span style="font-size: 1.5em">👻</span>
+                        </div>
+                      </div>
+
+                      <div
+                        style="
+                          padding: 20px;
+                          background: rgba(74, 222, 128, 0.1);
+                          border-radius: 8px;
+                          margin: 15px 0;
+                          border: 2px solid #4ade80;
+                        "
+                      >
+                        <div
+                          style="
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            color: white;
+                          "
+                        >
+                          <span>Alex - SURVIVED</span>
+                          <span style="font-size: 1.5em">🎉</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p
+                      style="
+                        font-size: 1.1em;
+                        margin-top: 30px;
+                        color: var(--text-gray);
+                      "
+                    >
+                      Mike is now a GHOST<br />
+                      Can't score until Final Sprint
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== GAME MODE 7: FINAL SPRINT ==================== -->
+      <div class="section">
+        <h2 class="section-title">🏃‍♂️ GAME 7: FINAL SPRINT</h2>
+        <p
+          style="
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+          "
+        >
+          Rapid-fire questions at the end - GHOSTS CAN PLAY! 👻
+        </p>
+
+        <div class="screen-grid">
+          <!-- Player View: Final Sprint Start -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge badge-final-sprint"
+                >FINAL SPRINT</span
+              ><br />Player: Sprint Intro
+            </h3>
+            <div class="screen-preview preview-final-sprint">
+              <div class="mockup">
+                <div style="text-align: center; padding-top: 40px">
+                  <h1
+                    style="
+                      font-size: 2.5em;
+                      margin-bottom: 20px;
+                      color: var(--netflix-red);
+                    "
+                  >
+                    FINAL SPRINT
+                  </h1>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      color: white;
+                      padding: 30px;
+                      border-radius: 8px;
+                      margin-bottom: 30px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p
+                      style="
+                        font-size: 1.5em;
+                        line-height: 1.6;
+                        margin-bottom: 20px;
+                      "
+                    >
+                      Rapid-fire round<br />
+                      6 quick questions<br />
+                      GHOSTS CAN PLAY
+                    </p>
+                    <p
+                      style="font-size: 1.3em; color: #4ade80; margin-top: 20px"
+                    >
+                      Come back from the dead
+                    </p>
+                  </div>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      color: white;
+                      padding: 20px;
+                      border-radius: 8px;
+                      font-size: 1.2em;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p style="margin: 0">Starting in...</p>
+                    <p
+                      style="
+                        font-size: 3em;
+                        font-weight: bold;
+                        margin: 15px 0;
+                        color: var(--netflix-red);
+                      "
+                    >
+                      3
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Player View: Final Sprint Question -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge badge-final-sprint"
+                >FINAL SPRINT</span
+              ><br />Player: Sprint Question
+            </h3>
+            <div class="screen-preview preview-final-sprint">
+              <div class="mockup">
+                <div style="text-align: center">
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      color: white;
+                      padding: 15px;
+                      border-radius: 6px;
+                      margin-bottom: 20px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p
+                      style="
+                        margin: 5px 0;
+                        font-size: 1.2em;
+                        font-weight: bold;
+                        color: var(--netflix-red);
+                      "
+                    >
+                      FINAL SPRINT
+                    </p>
+                    <p style="margin: 5px 0">Question 2/6 | 10s</p>
+                  </div>
+
+                  <h3
+                    style="margin-bottom: 25px; font-size: 1.5em; color: white"
+                  >
+                    Quick! What year did the Titanic sink?
+                  </h3>
+
+                  <p
+                    style="
+                      font-size: 0.9em;
+                      margin-bottom: 20px;
+                      color: var(--text-gray);
+                    "
+                  >
+                    Lightning round - answer fast
+                  </p>
+
+                  <div style="display: grid; gap: 12px">
+                    <button
+                      style="
+                        padding: 18px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        color: white;
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      A) 1910
+                    </button>
+                    <button
+                      style="
+                        padding: 18px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        color: white;
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      B) 1912
+                    </button>
+                    <button
+                      style="
+                        padding: 18px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        color: white;
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      C) 1914
+                    </button>
+                    <button
+                      style="
+                        padding: 18px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        color: white;
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-weight: bold;
+                      "
+                    >
+                      D) 1920
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TV View: Final Sprint Leaderboard -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge badge-final-sprint"
+                >FINAL SPRINT</span
+              ><br />TV: Sprint Standings
+            </h3>
+            <div class="screen-preview preview-final-sprint">
+              <div class="mockup">
+                <div style="text-align: center; padding: 10px">
+                  <h2
+                    style="font-size: 2.2em; margin-bottom: 20px; color: white"
+                  >
+                    FINAL SPRINT - After Q4/6
+                  </h2>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      color: white;
+                      padding: 30px;
+                      border-radius: 8px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p style="font-size: 1.3em; margin-bottom: 25px">
+                      Current Standings
+                    </p>
+
+                    <div
+                      style="
+                        text-align: left;
+                        max-width: 650px;
+                        margin: 0 auto;
+                        font-size: 1.3em;
+                      "
+                    >
+                      <div
+                        style="
+                          display: flex;
+                          justify-content: space-between;
+                          padding: 20px;
+                          background: var(--netflix-red);
+                          border-radius: 8px;
+                          margin: 12px 0;
+                        "
+                      >
+                        <span><strong>Alex</strong></span>
+                        <span style="font-weight: bold">1,450 pts</span>
+                      </div>
+
+                      <div
+                        style="
+                          display: flex;
+                          justify-content: space-between;
+                          padding: 20px;
+                          background: rgba(255, 255, 255, 0.03);
+                          border: 1px solid rgba(255, 255, 255, 0.1);
+                          border-radius: 8px;
+                          margin: 12px 0;
+                        "
+                      >
+                        <span><strong>Sarah</strong></span>
+                        <span style="font-weight: bold">1,400 pts</span>
+                      </div>
+
+                      <div
+                        style="
+                          display: flex;
+                          justify-content: space-between;
+                          padding: 20px;
+                          background: rgba(255, 255, 255, 0.03);
+                          border: 1px solid rgba(255, 255, 255, 0.1);
+                          border-radius: 8px;
+                          margin: 12px 0;
+                        "
+                      >
+                        <span><strong>Jamie</strong></span>
+                        <span style="font-weight: bold">1,200 pts</span>
+                      </div>
+
+                      <div
+                        style="
+                          display: flex;
+                          justify-content: space-between;
+                          padding: 20px;
+                          background: rgba(74, 222, 128, 0.15);
+                          border: 2px solid #4ade80;
+                          border-radius: 8px;
+                          margin: 12px 0;
+                        "
+                      >
+                        <span><strong>Mike</strong> (BACK FROM THE DEAD)</span>
+                        <span style="font-weight: bold">950 pts</span>
+                      </div>
+                    </div>
+
+                    <p
+                      style="font-size: 1.1em; margin-top: 25px; color: #4ade80"
+                    >
+                      Mike scored 200 pts in the Sprint
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== GAME MODE 8: PERSONALIZED QUESTIONS ==================== -->
+      <div class="section">
+        <h2 class="section-title">👤 GAME 8: PERSONALIZED QUESTIONS</h2>
+        <p
+          style="
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+          "
+        >
+          AI-generated based on friend group questionnaire responses
+        </p>
+
+        <div class="screen-grid">
+          <!-- Player View: Personalized Roast -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge badge-personalized"
+                >PERSONALIZED</span
+              ><br />Player: Group Consensus
+            </h3>
+            <div class="screen-preview preview-receipts">
+              <div class="mockup">
+                <div style="text-align: center">
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 15px;
+                      border-radius: 6px;
+                      margin-bottom: 20px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p
+                      style="
+                        margin: 5px 0;
+                        font-size: 1.1em;
+                        color: var(--netflix-red);
+                        font-weight: 700;
+                      "
+                    >
+                      GROUP CONSENSUS
+                    </p>
+                    <p style="margin: 5px 0; color: white">Round 12 | 20s</p>
+                  </div>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 25px;
+                      border-radius: 8px;
+                      margin-bottom: 25px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <h3
+                      style="
+                        font-size: 1.5em;
+                        line-height: 1.4;
+                        margin-bottom: 15px;
+                        color: white;
+                      "
+                    >
+                      Based on everyone's questionnaire answers:<br />
+                      Who's most likely to cheat at trivia?
+                    </h3>
+                    <p
+                      style="
+                        font-size: 0.95em;
+                        opacity: 0.7;
+                        margin-top: 15px;
+                        color: var(--text-gray);
+                      "
+                    >
+                      AI analyzed your friend group responses
+                    </p>
+                  </div>
+
+                  <div style="display: grid; gap: 15px">
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      Sarah
+                    </button>
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      Mike
+                    </button>
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      Alex
+                    </button>
+                    <button
+                      style="
+                        padding: 20px;
+                        font-size: 1.1em;
+                        background: var(--surface-hover);
+                        border: 2px solid transparent;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                      "
+                    >
+                      Jamie
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TV View: Personalized Answer -->
+          <div class="screen-card">
+            <h3>
+              <span class="game-type-badge badge-personalized"
+                >PERSONALIZED</span
+              ><br />TV: AI Consensus
+            </h3>
+            <div class="screen-preview preview-receipts">
+              <div class="mockup">
+                <div style="text-align: center; padding: 10px">
+                  <h2 style="font-size: 2em; margin-bottom: 25px; color: white">
+                    GROUP CONSENSUS
+                  </h2>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.03);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      padding: 30px;
+                      border-radius: 8px;
+                      margin-bottom: 25px;
+                      backdrop-filter: blur(10px);
+                    "
+                  >
+                    <p
+                      style="
+                        font-size: 1.5em;
+                        margin-bottom: 25px;
+                        color: white;
+                      "
+                    >
+                      Based on everyone's questionnaire:<br />
+                      Who's most likely to cheat at trivia?
+                    </p>
+
+                    <div
+                      style="
+                        background: var(--netflix-red);
+                        padding: 30px;
+                        border-radius: 8px;
+                      "
+                    >
+                      <p
+                        style="
+                          font-size: 2.5em;
+                          font-weight: bold;
+                          margin: 0;
+                          color: white;
+                        "
+                      >
+                        MIKE
+                      </p>
+                      <p
+                        style="font-size: 1.2em; margin-top: 12px; color: white"
+                      >
+                        75% of the group said Mike
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    style="
+                      background: rgba(0, 0, 0, 0.3);
+                      padding: 20px;
+                      border-radius: 12px;
+                      font-size: 1.2em;
+                    "
+                  >
+                    <p style="margin-bottom: 10px">
+                      📊 Questionnaire Breakdown:
+                    </p>
+                    <div
+                      style="text-align: left; max-width: 450px; margin: 0 auto"
+                    >
+                      <p style="margin: 8px 0">Mike: 3 votes ✅</p>
+                      <p style="margin: 8px 0; opacity: 0.7">Sarah: 1 vote</p>
+                      <p style="margin: 8px 0; opacity: 0.5">Alex: 0 votes</p>
+                      <p style="margin: 8px 0; opacity: 0.5">Jamie: 0 votes</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== STANDARD UI STATES ==================== -->
+      <div class="section">
+        <h2 class="section-title">🎮 Standard UI States (All Games)</h2>
+        <p
+          style="
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+          "
+        >
+          Common screens that appear across all game modes
+        </p>
+
+        <div class="screen-grid">
+          <!-- Lobby States -->
+          <div class="screen-card">
+            <h3>Player: Lobby (Waiting)</h3>
+            <div class="screen-preview preview-player">
+              <div class="mockup">
+                <div style="text-align: center; padding-top: 60px">
+                  <h2>Welcome, Sarah! 👋</h2>
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.2);
+                      padding: 20px;
+                      border-radius: 10px;
+                      margin: 25px 0;
+                    "
+                  >
+                    <p style="font-size: 1.5em; margin: 10px 0">
+                      Game Code: <strong>ABC123</strong>
+                    </p>
+                    <p style="font-size: 1.2em; margin: 10px 0">
+                      4 players joined
+                    </p>
+                  </div>
+                  <div style="margin-top: 35px">
+                    <div style="animation: pulse 2s infinite; font-size: 1.2em">
+                      ⏳ Waiting for host to start...
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="screen-card">
+            <h3>Host: Lobby</h3>
+            <div class="screen-preview preview-host">
+              <div class="mockup">
+                <div style="text-align: center">
+                  <h1 style="margin-bottom: 20px">Game Lobby</h1>
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.2);
+                      padding: 25px;
+                      border-radius: 15px;
+                      margin-bottom: 25px;
+                    "
+                  >
+                    <p style="font-size: 2em; margin: 10px 0">Game Code:</p>
+                    <p
+                      style="
+                        font-size: 3em;
+                        font-weight: bold;
+                        letter-spacing: 8px;
+                        margin: 10px 0;
+                      "
+                    >
+                      ABC123
+                    </p>
+                  </div>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.2);
+                      padding: 20px;
+                      border-radius: 10px;
+                      margin-bottom: 25px;
+                    "
+                  >
+                    <h3 style="margin-bottom: 15px">Players (4)</h3>
+                    <div
+                      style="
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 10px;
+                        text-align: left;
+                      "
+                    >
+                      <p>✅ Sarah</p>
+                      <p>✅ Mike</p>
+                      <p>✅ Alex</p>
+                      <p>✅ Jamie</p>
+                    </div>
+                  </div>
+
+                  <button
+                    style="
+                      padding: 20px 60px;
+                      font-size: 1.3em;
+                      background: white;
+                      color: #f5576c;
+                      border: none;
+                      border-radius: 15px;
+                      cursor: pointer;
+                      font-weight: bold;
+                    "
+                  >
+                    START GAME
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="screen-card">
+            <h3>TV: Lobby</h3>
+            <div class="screen-preview preview-tv">
+              <div class="mockup">
+                <div style="text-align: center; padding: 15px">
+                  <h1 style="font-size: 2.8em; margin-bottom: 30px">
+                    🎮 1280 TRIVIA 🎮
+                  </h1>
+
+                  <div
+                    style="
+                      background: rgba(0, 0, 0, 0.3);
+                      padding: 35px;
+                      border-radius: 20px;
+                      margin-bottom: 35px;
+                    "
+                  >
+                    <p style="font-size: 1.8em; margin-bottom: 15px">
+                      JOIN THE GAME!
+                    </p>
+                    <div
+                      style="
+                        background: white;
+                        color: #00f2fe;
+                        padding: 25px;
+                        border-radius: 15px;
+                        margin: 25px auto;
+                        max-width: 400px;
+                      "
+                    >
+                      <p style="font-size: 1.3em; margin-bottom: 8px">
+                        Enter Code:
+                      </p>
+                      <p
+                        style="
+                          font-size: 3.5em;
+                          font-weight: bold;
+                          letter-spacing: 10px;
+                        "
+                      >
+                        ABC123
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    style="
+                      background: rgba(0, 0, 0, 0.3);
+                      padding: 20px;
+                      border-radius: 15px;
+                    "
+                  >
+                    <h2 style="font-size: 1.8em; margin-bottom: 15px">
+                      Players (4)
+                    </h2>
+                    <div
+                      style="
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 12px;
+                        font-size: 1.3em;
+                      "
+                    >
+                      <p>✅ Sarah</p>
+                      <p>✅ Mike</p>
+                      <p>✅ Alex</p>
+                      <p>✅ Jamie</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Answer Submitted -->
+          <div class="screen-card">
+            <h3>Player: Answer Submitted</h3>
+            <div class="screen-preview preview-player">
+              <div class="mockup">
+                <div style="text-align: center; padding-top: 70px">
+                  <div style="font-size: 4em; margin-bottom: 20px">✅</div>
+                  <h2 style="margin-bottom: 15px">Answer Locked In!</h2>
+                  <p style="font-size: 1.2em; margin-bottom: 30px">
+                    You answered: <strong>B</strong>
+                  </p>
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.2);
+                      padding: 20px;
+                      border-radius: 10px;
+                    "
+                  >
+                    <p>⏳ Waiting for others...</p>
+                    <p style="margin-top: 10px">3 of 4 answered</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Round Results: Correct -->
+          <div class="screen-card">
+            <h3>Player: Correct Answer</h3>
+            <div class="screen-preview preview-player">
+              <div class="mockup">
+                <div style="text-align: center; padding-top: 40px">
+                  <div style="font-size: 4em; margin-bottom: 15px">🎉</div>
+                  <h2 style="color: #4ade80; margin-bottom: 10px">Correct!</h2>
+                  <p style="font-size: 1.3em; margin-bottom: 25px">
+                    +100 points
+                  </p>
+
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.2);
+                      padding: 20px;
+                      border-radius: 10px;
+                      margin-bottom: 20px;
+                    "
+                  >
+                    <h3 style="margin-bottom: 15px">Current Standings</h3>
+                    <div style="text-align: left">
+                      <p>🥇 Mike - 500 pts</p>
+                      <p
+                        style="
+                          background: rgba(255, 255, 255, 0.3);
+                          padding: 10px;
+                          border-radius: 5px;
+                          margin: 5px 0;
+                        "
+                      >
+                        🥈 You - 400 pts
+                      </p>
+                      <p>🥉 Alex - 300 pts</p>
+                      <p>4️⃣ Jamie - 200 pts</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Final Results -->
+          <div class="screen-card">
+            <h3>TV: Final Victory Screen</h3>
+            <div class="screen-preview preview-tv">
+              <div class="mockup">
+                <div style="text-align: center; padding: 10px">
+                  <h1
+                    style="
+                      font-size: 3.5em;
+                      margin-bottom: 20px;
+                      animation: pulse 2s infinite;
+                    "
+                  >
+                    🏆
+                  </h1>
+                  <h2 style="font-size: 2.5em; margin-bottom: 30px">
+                    GAME OVER!
+                  </h2>
+
+                  <div
+                    style="
+                      background: linear-gradient(
+                        135deg,
+                        rgba(255, 215, 0, 0.5),
+                        rgba(255, 215, 0, 0.2)
+                      );
+                      padding: 40px;
+                      border-radius: 20px;
+                      border: 5px solid gold;
+                      margin-bottom: 30px;
+                    "
+                  >
+                    <div style="font-size: 4em; margin-bottom: 15px">👑</div>
+                    <h2 style="font-size: 3em; margin-bottom: 10px">
+                      SARAH WINS!
+                    </h2>
+                    <p style="font-size: 2em; font-weight: bold">
+                      1,850 points
+                    </p>
+                  </div>
+
+                  <div
+                    style="
+                      background: rgba(0, 0, 0, 0.3);
+                      padding: 25px;
+                      border-radius: 15px;
+                    "
+                  >
+                    <h3 style="font-size: 1.8em; margin-bottom: 20px">
+                      Final Standings
+                    </h3>
+                    <div
+                      style="
+                        text-align: left;
+                        max-width: 550px;
+                        margin: 0 auto;
+                        font-size: 1.3em;
+                      "
+                    >
+                      <div
+                        style="
+                          padding: 15px;
+                          background: rgba(192, 192, 192, 0.3);
+                          border-radius: 10px;
+                          margin: 10px 0;
+                        "
+                      >
+                        <div
+                          style="display: flex; justify-content: space-between"
+                        >
+                          <span>🥈 Mike</span>
+                          <span style="font-weight: bold">1,700 pts</span>
+                        </div>
+                      </div>
+                      <div
+                        style="
+                          padding: 15px;
+                          background: rgba(205, 127, 50, 0.3);
+                          border-radius: 10px;
+                          margin: 10px 0;
+                        "
+                      >
+                        <div
+                          style="display: flex; justify-content: space-between"
+                        >
+                          <span>🥉 Alex</span>
+                          <span style="font-weight: bold">1,400 pts</span>
+                        </div>
+                      </div>
+                      <div
+                        style="
+                          padding: 12px;
+                          background: rgba(255, 255, 255, 0.15);
+                          border-radius: 10px;
+                          margin: 10px 0;
+                        "
+                      >
+                        <div
+                          style="display: flex; justify-content: space-between"
+                        >
+                          <span>4️⃣ Jamie</span>
+                          <span>1,100 pts</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Back to Home -->
+      <div style="text-align: center; margin: 60px 0 40px 0">
+        <a
+          href="/"
+          class="back-btn"
+          style="position: static; display: inline-block"
+        >
+          ← Back to Home
+        </a>
+      </div>
+
+      <!-- Design Philosophy -->
+      <div class="section" style="margin-top: 40px">
+        <div
+          style="
+            background: var(--surface-dark);
+            border: 1px solid var(--surface-hover);
+            border-left: 4px solid var(--netflix-red);
+            border-radius: 8px;
+            padding: 30px;
+          "
+        >
+          <h3
+            style="
+              font-size: 1.6em;
+              margin-bottom: 20px;
+              color: var(--netflix-red);
+            "
+          >
+            🎨 Design Philosophy
+          </h3>
+          <p
+            style="
+              line-height: 1.8;
+              color: var(--text-gray);
+              margin-bottom: 15px;
+            "
+          >
+            <strong style="color: white">Consistent Visual Language:</strong>
+            Instead of using different colors for each game mode, 1280 Trivia
+            uses a unified <strong>Netflix-inspired dark interface</strong> that
+            provides a cohesive, professional experience across all question
+            types.
+          </p>
+          <p
+            style="
+              line-height: 1.8;
+              color: var(--text-gray);
+              margin-bottom: 15px;
+            "
+          >
+            <strong style="color: white">What Makes Each Mode Unique:</strong>
+            Game modes are differentiated by their
+            <strong>content</strong> (chat receipts vs trivia vs polls),
+            <strong>mechanics</strong> (voting vs correct answers vs minigames),
+            and <strong>scoring systems</strong> (points for accuracy vs points
+            for consensus).
+          </p>
+          <p style="line-height: 1.8; color: var(--text-gray)">
+            <strong style="color: white">Inspired By:</strong> Jackbox Games,
+            Netflix UI, modern streaming interfaces. The dark theme reduces eye
+            strain during gameplay and creates an immersive party game
+            atmosphere.
+          </p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

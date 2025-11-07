@@ -4,15 +4,652 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Player Dashboard - 1280 Trivia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap"
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/style.css') }}"
     />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+      :root {
+        --netflix-black: #0f0f0f;
+        --netflix-dark: #1a1a1a;
+        --netflix-red: #e50914;
+        --text-white: #ffffff;
+        --text-gray: #666666;
+        --surface-dark: rgba(255, 255, 255, 0.03);
+        --surface-hover: rgba(255, 255, 255, 0.08);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--netflix-black) 0%,
+          var(--netflix-dark) 100%
+        );
+        color: var(--text-white);
+        min-height: 100dvh; /* Use dvh for mobile browsers */
+        font-weight: 400;
+        overflow-x: hidden;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 600px; /* Cap width for desktop viewing */
+        min-height: 100dvh; /* Use dvh for mobile browsers */
+        position: relative;
+        padding: 0 16px;
+        padding-bottom: 100px; /* Space for status bar */
+        display: flex;
+        flex-direction: column;
+        margin: 0 auto; /* Center on desktop */
+      }
+
+      /* Header */
+      .header {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background: rgba(15, 15, 15, 0.95);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--surface-dark);
+        padding: 20px 0;
+        margin: 0 -16px 20px -16px;
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .header h1 {
+        font-family: "Bebas Neue", cursive;
+        font-size: 28px;
+        font-weight: 400;
+        margin-bottom: 8px;
+        letter-spacing: 1px;
+      }
+
+      .player-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+      }
+
+      #player-name-display {
+        font-weight: 600;
+        color: var(--netflix-red);
+        font-size: 16px;
+      }
+
+      #player-score {
+        background: var(--surface-dark);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 14px;
+        border: 1px solid var(--surface-hover);
+      }
+
+      /* Sections - Mobile-First */
+      .section {
+        background: var(--surface-dark);
+        border-radius: 12px;
+        padding: 28px 20px;
+        margin-bottom: 16px;
+        border: 1px solid var(--surface-hover);
+        backdrop-filter: blur(10px);
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .section h2 {
+        font-family: "Bebas Neue", cursive;
+        font-size: 24px;
+        margin-bottom: 20px;
+        letter-spacing: 0.5px;
+        text-align: center;
+        color: var(--text-white);
+      }
+
+      /* Room Code Badge - Mobile-First */
+      .room-code-badge {
+        display: block;
+        background: rgba(229, 9, 20, 0.15);
+        border: 2px solid var(--netflix-red);
+        border-radius: 10px;
+        padding: 16px 20px;
+        margin: 20px 0;
+        box-shadow: 0 4px 16px rgba(229, 9, 20, 0.2);
+      }
+
+      .room-code-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-gray);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 6px;
+        text-align: center;
+      }
+
+      .room-code-value {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 40px;
+        font-weight: 400;
+        letter-spacing: 6px;
+        color: var(--netflix-red);
+        text-align: center;
+        line-height: 1;
+      }
+
+      /* Start Game Button Style */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px 32px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 16px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+      }
+
+      .btn-primary {
+        background: var(--netflix-red);
+        color: white;
+        border: 2px solid var(--netflix-red);
+      }
+
+      .btn-primary:hover,
+      .btn-primary:active {
+        background: #b8070f;
+        border-color: #b8070f;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(229, 9, 20, 0.3);
+      }
+
+      .btn-primary:disabled {
+        background: var(--text-gray);
+        border-color: var(--text-gray);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+        opacity: 0.5;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      /* Loading Spinner - Premium Glow */
+      .loading-spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid rgba(255, 255, 255, 0.1);
+        border-top: 4px solid var(--netflix-red);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 24px auto;
+        box-shadow: 0 0 20px rgba(229, 9, 20, 0.3);
+        filter: drop-shadow(0 0 8px rgba(229, 9, 20, 0.4));
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Fade-in animations for smooth transitions */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .section {
+        animation: fadeInUp 0.4s ease-out;
+      }
+
+      .answer-btn {
+        animation: fadeInUp 0.3s ease-out;
+        animation-fill-mode: both;
+      }
+
+      .answer-btn:nth-child(1) {
+        animation-delay: 0.05s;
+      }
+      .answer-btn:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      .answer-btn:nth-child(3) {
+        animation-delay: 0.15s;
+      }
+      .answer-btn:nth-child(4) {
+        animation-delay: 0.2s;
+      }
+
+      /* Question Info - Modern Header */
+      .question-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .category-badge {
+        background: rgba(229, 9, 20, 0.2);
+        border: 2px solid var(--netflix-red);
+        color: var(--netflix-red);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        box-shadow: 0 0 16px rgba(229, 9, 20, 0.4);
+        backdrop-filter: blur(8px);
+      }
+
+      .timer-circle {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: rgba(229, 9, 20, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid var(--netflix-red);
+        flex-shrink: 0;
+        box-shadow: 0 0 16px rgba(229, 9, 20, 0.5);
+        backdrop-filter: blur(8px);
+      }
+
+      .timer-circle span {
+        font-weight: 800;
+        font-size: 18px;
+        color: var(--netflix-red);
+        font-family: "Bebas Neue", sans-serif;
+      }
+
+      /* Question Text - Premium Glass Card */
+      #question-text {
+        font-size: 18px;
+        line-height: 1.5;
+        margin-bottom: 20px;
+        font-weight: 600;
+        color: var(--text-white);
+        padding: 24px 20px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        min-height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      }
+
+      .status-banner {
+        display: none;
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        font-weight: 600;
+        text-align: center;
+      }
+
+      .status-banner.status-warning {
+        display: block;
+        background: rgba(229, 9, 20, 0.2);
+        border: 1px solid rgba(229, 9, 20, 0.4);
+        color: #ff8a80;
+      }
+
+      .status-banner.status-info {
+        display: block;
+        background: rgba(0, 184, 148, 0.15);
+        border: 1px solid rgba(0, 184, 148, 0.35);
+        color: #00d1a0;
+      }
+
+      .status-banner.hidden {
+        display: none;
+      }
+
+      #minigame-panel,
+      #minigame-results,
+      #final-sprint-track {
+        display: block;
+        background: var(--surface-dark);
+        border: 1px solid var(--surface-hover);
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 16px;
+      }
+
+      #minigame-panel.hidden,
+      #minigame-results.hidden,
+      #final-sprint-track.hidden {
+        display: none;
+      }
+
+      #minigame-results ul,
+      #final-sprint-track ul {
+        list-style: none;
+        padding: 0;
+        margin: 12px 0 0 0;
+      }
+
+      #minigame-results li,
+      #final-sprint-track li {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      #minigame-results li:last-child,
+      #final-sprint-track li:last-child {
+        border-bottom: none;
+      }
+
+      .status-safe {
+        color: #00d1a0;
+      }
+
+      .status-dead {
+        color: #ff7675;
+      }
+
+      /* Mobile Answers - Modern Card Style */
+      .mobile-answers {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .answer-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        color: var(--text-white);
+        padding: 18px 20px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: left;
+        min-height: 64px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(8px);
+      }
+
+      .answer-btn:hover,
+      .answer-btn:active {
+        background: rgba(229, 9, 20, 0.15);
+        border-color: var(--netflix-red);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(229, 9, 20, 0.3);
+      }
+
+      .answer-btn.selected {
+        background: rgba(229, 9, 20, 0.2);
+        border-color: var(--netflix-red);
+        border-width: 3px;
+        box-shadow: 0 0 16px rgba(229, 9, 20, 0.4);
+        transform: scale(1.02);
+      }
+
+      .answer-btn.correct {
+        background: rgba(34, 197, 94, 0.2);
+        border-color: #22c55e;
+        border-width: 3px;
+        box-shadow: 0 0 16px rgba(34, 197, 94, 0.4);
+      }
+
+      .answer-btn.incorrect {
+        background: rgba(239, 68, 68, 0.15);
+        border-color: #ef4444;
+        opacity: 0.6;
+      }
+
+      /* Answer Feedback - Modern Card */
+      .answer-feedback {
+        text-align: center;
+        padding: 20px 18px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        margin-top: 20px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+      }
+
+      .answer-feedback.correct {
+        background: rgba(34, 197, 94, 0.15);
+        border-color: #22c55e;
+        box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+      }
+
+      .answer-feedback.incorrect {
+        background: rgba(239, 68, 68, 0.15);
+        border-color: #ef4444;
+        box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+      }
+
+      #feedback-message {
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      #points-earned {
+        font-size: 22px;
+        color: var(--netflix-red);
+        font-weight: 800;
+        font-family: "Bebas Neue", sans-serif;
+        letter-spacing: 2px;
+      }
+
+      /* Status Bar - Hidden until game starts - Mobile-First */
+      .status-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(
+          to top,
+          rgba(15, 15, 15, 1) 0%,
+          rgba(15, 15, 15, 0.98) 100%
+        );
+        backdrop-filter: blur(20px);
+        border-top: 2px solid var(--surface-hover);
+        padding: 14px 12px;
+        display: none; /* Hidden by default */
+        justify-content: space-between;
+        align-items: center;
+        z-index: 1000;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+      }
+
+      .status-bar.active {
+        display: flex; /* Show when game is active */
+      }
+
+      .status-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .status-item .label {
+        font-size: 9px;
+        color: var(--text-gray);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+      }
+
+      .status-item span:not(.label) {
+        font-weight: 800;
+        font-size: 16px;
+        color: var(--text-white);
+      }
+
+      #current-score {
+        color: var(--netflix-red);
+      }
+
+      /* Waiting/Submitted Message - Premium Card */
+      #waiting-next h2 {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 32px;
+        margin-bottom: 20px;
+        letter-spacing: 2px;
+        background: linear-gradient(135deg, var(--netflix-red), #ff4757);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      #waiting-next p {
+        padding: 16px 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Final Results - Premium Mobile */
+      #final-results {
+        text-align: center;
+        padding: 28px 20px;
+      }
+
+      #final-results h2 {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 32px;
+        margin-bottom: 24px;
+        letter-spacing: 2px;
+        background: linear-gradient(135deg, var(--netflix-red), #ff4757);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      #final-rank {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 56px;
+        font-weight: 400;
+        margin-bottom: 16px;
+        color: var(--netflix-red);
+        letter-spacing: 2px;
+        padding: 20px;
+        background: rgba(229, 9, 20, 0.15);
+        border: 3px solid var(--netflix-red);
+        border-radius: 16px;
+        box-shadow: 0 0 24px rgba(229, 9, 20, 0.4);
+        backdrop-filter: blur(12px);
+      }
+
+      #final-score {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 28px;
+        color: var(--text-white);
+        padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        backdrop-filter: blur(8px);
+        display: inline-block;
+      }
+
+      #player-final-leaderboard {
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 2px solid rgba(255, 255, 255, 0.15);
+      }
+
+      /* Leaderboard Items on Player */
+      #player-final-leaderboard > div {
+        padding: 12px 16px;
+        margin-bottom: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      #player-final-leaderboard > div:first-child {
+        background: rgba(229, 9, 20, 0.2);
+        border: 3px solid var(--netflix-red);
+        box-shadow: 0 0 20px rgba(229, 9, 20, 0.4);
+        transform: scale(1.02);
+      }
+
+      /* Responsive Design - Mobile-First Approach */
+      @media (max-width: 480px) {
+        .header h1 {
+          font-size: 22px;
+        }
+      }
+
+      /* Container adjustment when status bar is active */
+      body.game-active .container {
+        padding-bottom: 80px;
+      }
+
+      /* Touch-friendly improvements */
+      @media (hover: none) and (pointer: coarse) {
+        .answer-btn {
+          min-height: 64px;
+          font-size: 16px;
+        }
+      }
+    </style>
   </head>
   <body>
     <div class="container mobile-friendly">
       <div class="header">
-        <h1>🎮 Player Dashboard</h1>
+        <h1>Player Dashboard</h1>
         <div class="player-info">
           <span id="player-name-display"></span>
           <span id="player-score">0 pts</span>
@@ -20,45 +657,119 @@
       </div>
 
       <!-- Waiting for Game -->
-      <div id="waiting-screen" class="section">
-        <h2>Waiting for Game to Start...</h2>
-        <div class="loading-spinner"></div>
-        <p>Room Code: <strong id="room-code-display"></strong></p>
+      <div
+        id="waiting-screen"
+        data-testid="waiting-screen"
+        class="section"
+        style="text-align: center"
+      >
+        <h2>Waiting for Game to Start</h2>
+
+        <div class="room-code-badge">
+          <div class="room-code-label">Room Code</div>
+          <div
+            class="room-code-value"
+            id="room-code-display"
+            data-testid="room-code-display"
+          ></div>
+        </div>
+
+        <p
+          style="
+            color: var(--text-gray);
+            font-size: 16px;
+            font-weight: 500;
+            margin-top: 20px;
+            line-height: 1.5;
+          "
+        >
+          Share this code with your friends to join!
+        </p>
+
+        <div class="loading-spinner" style="margin-top: 24px"></div>
+
+        <button
+          id="start-game-btn"
+          data-testid="start-game-btn"
+          class="btn btn-primary hidden"
+          style="margin-top: 32px"
+        >
+          Start Game
+        </button>
       </div>
 
       <!-- Question Display -->
-      <div id="question-screen" class="section hidden">
+      <div
+        id="question-screen"
+        data-testid="question-screen"
+        class="section hidden"
+      >
         <div class="question-info">
-          <div class="category-badge" id="question-category"></div>
+          <div
+            class="category-badge"
+            id="question-category"
+            data-testid="question-category"
+          ></div>
           <div class="timer-circle">
-            <span id="time-remaining">30</span>
+            <span id="time-remaining" data-testid="time-remaining">30</span>
           </div>
         </div>
 
-        <h2 id="question-text"></h2>
+        <div
+          id="status-banner"
+          data-testid="status-banner"
+          class="status-banner hidden"
+        ></div>
+        <div id="minigame-panel" class="hidden">
+          <p id="minigame-message"></p>
+        </div>
+        <div id="minigame-results" class="hidden"></div>
+        <div id="final-sprint-track" class="hidden"></div>
 
-        <div class="mobile-answers" id="mobile-answers">
+        <h2 id="question-text" data-testid="question-text"></h2>
+
+        <div
+          class="mobile-answers"
+          id="mobile-answers"
+          data-testid="mobile-answers"
+        >
           <!-- Answer buttons will be populated here -->
         </div>
 
-        <div id="answer-feedback" class="answer-feedback hidden">
+        <div
+          id="answer-feedback"
+          data-testid="answer-feedback"
+          class="answer-feedback hidden"
+        >
           <div id="feedback-message"></div>
-          <div id="points-earned"></div>
+          <div id="points-earned" data-testid="points-earned"></div>
         </div>
       </div>
 
       <!-- Waiting for Next Question -->
-      <div id="waiting-next" class="section hidden">
-        <h2>✅ Answer Submitted!</h2>
-        <p>Waiting for other players...</p>
-        <div id="last-answer-result"></div>
+      <div
+        id="waiting-next"
+        data-testid="answer-submitted"
+        class="section hidden"
+        style="text-align: center"
+      >
+        <h2>Answer Submitted!</h2>
+        <div class="loading-spinner"></div>
+        <p style="color: var(--text-gray); margin-top: 20px">
+          Waiting for other players...
+        </p>
+        <div id="last-answer-result" style="margin-top: 20px"></div>
       </div>
 
       <!-- Game Results -->
-      <div id="final-results" class="section hidden">
-        <h2>🏆 Game Over!</h2>
-        <div id="final-rank"></div>
-        <div id="final-score"></div>
+      <div
+        id="final-results"
+        data-testid="final-results"
+        class="section hidden"
+      >
+        <h2>Game Over!</h2>
+        <div id="final-rank" data-testid="final-rank"></div>
+        <div id="final-score" data-testid="final-score"></div>
         <div id="player-final-leaderboard"></div>
       </div>
 
