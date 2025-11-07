@@ -17,29 +17,11 @@ class Config:
     QUESTION_TIME_LIMIT = 30  # seconds
     MAX_PLAYERS = 10
     
-    # Chat parsing settings
-    TARGET_CHATS = [
-        "1280 Gang Bang",
-        "OG 1280",
-        "It's Only Gay If You Push Back ",  # Using exact name as found in DB (with space)
-        "Just a Bowl"
-    ]
+    # Chat parsing settings (disabled in product version - use survey system instead)
+    TARGET_CHATS = []
     
-    # Contact mapping for phone numbers to names
-    CONTACT_MAP = {
-        "+18034976579": "Benny",
-        "18034976579": "Benny",
-        "8034976579": "Benny",
-        "+19109295033": "Gina", 
-        "19109295033": "Gina",
-        "9109295033": "Gina",
-        "+14046410104": "Ian",
-        "14046410104": "Ian", 
-        "4046410104": "Ian",
-        "+18645065892": "Lauren",
-        "18645065892": "Lauren",
-        "8645065892": "Lauren"
-    }
+    # Contact mapping for phone numbers to names (disabled in product version)
+    CONTACT_MAP = {}
     
     # Question generation settings
     ROAST_QUESTION_RATIO = 0.4  # 40% roast questions

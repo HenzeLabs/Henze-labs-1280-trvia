@@ -1,8 +1,16 @@
 # 1280 Trivia
 
-A Jackbox-style trivia game that parses iMessage chat data to generate roast-style questions for your friends at 1280 West Condos.
+**🎮 PRODUCT BRANCH** - Clean version for public deployment
 
-## 🔒 **API Contract Stability**
+A Jackbox-style trivia game with personalized questions powered by pre-game surveys.
+
+---
+
+## 🎯 What Makes This Different?
+
+Unlike generic party games, this lets friend groups create **personalized roasts and inside jokes** through a pre-game survey system. Mix custom questions with regular trivia for the perfect game night.
+
+---
 
 **All future UI and animation layers must consume data conforming to `v1-api-contract-stable`.**
 
