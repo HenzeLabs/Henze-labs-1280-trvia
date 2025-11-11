@@ -44,6 +44,8 @@ class TVSpectator {
     this.socket.on("connect", () => {
       console.log("TV connected to server");
       this.joinRoom();
+      // BUG #16: Restore state after reconnect
+      this.restoreGameState();
     });
 
     this.socket.on("player_list_updated", (data) => {
@@ -85,15 +87,7 @@ class TVSpectator {
       this.revealAnswer(data);
     });
 
-    this.socket.on("minigame_started", (data) => {
-      console.log("Minigame started:", data);
-      this.showMinigame(data);
-    });
-
-    this.socket.on("minigame_results", (data) => {
-      console.log("Minigame results:", data);
-      this.showMinigameResults(data);
-    });
+    // Minigame feature removed - dead code cleanup
 
     this.socket.on("final_sprint_started", (data) => {
       console.log("Final sprint started:", data);
@@ -122,6 +116,35 @@ class TVSpectator {
       room_code: this.roomCode,
       role: "spectator",
     });
+  }
+
+  async restoreGameState() {
+    // BUG #16: Restore state after reconnect
+    try {
+      const response = await fetch(`/api/game/state/${this.roomCode}`);
+      if (!response.ok) {
+        console.warn("Could not restore game state");
+        return;
+      }
+
+      const state = await response.json();
+      console.log("Restoring game state:", state);
+
+      // Update local state
+      if (state.phase === "question" || state.phase === "reveal") {
+        this.currentQuestion = state.current_question;
+        this.gameState = state.phase;
+
+        // Restore UI to match current phase
+        if (state.phase === "question") {
+          this.displayQuestion(state.current_question);
+        } else if (state.phase === "reveal" && state.reveal_data) {
+          this.showAnswerReveal(state.reveal_data);
+        }
+      }
+    } catch (error) {
+      console.error("Error restoring game state:", error);
+    }
   }
 
   async loadGameInfo() {

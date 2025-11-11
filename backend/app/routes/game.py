@@ -328,44 +328,7 @@ def get_current_question_host(room_code):
             'message': 'No current question available'
         }), 404
 
-@bp.route('/reveal/<room_code>')
-def reveal_answer(room_code):
-    """
-    DEPRECATED: Manual reveal endpoint (replaced by auto-reveal).
-    This route is disabled by default. Set ENABLE_MANUAL_REVEAL=true to enable.
-    """
-    from flask import current_app
-
-    # Feature flag guard: return 410 Gone if manual reveal is disabled
-    if not current_app.config.get('ENABLE_MANUAL_REVEAL', False):
-        return jsonify({
-            'success': False,
-            'message': 'Manual reveal is deprecated. This game uses auto-reveal.',
-            'error_code': 'FEATURE_DISABLED',
-            'hint': 'Set ENABLE_MANUAL_REVEAL=true to re-enable (not recommended)'
-        }), 410  # 410 Gone = endpoint exists but resource permanently removed
-
-    # Legacy manual reveal logic (only runs if feature flag enabled)
-    answer = game_engine.get_question_answer(room_code)
-    stats = game_engine.get_answer_stats(room_code)
-
-    if answer and stats:
-        socketio.emit('answer_revealed', {
-            'room_code': room_code,
-            'correct_answer': answer,
-            'stats': stats
-        }, room=room_code)
-        log_event("answer_revealed", room_code=room_code, question_type=stats.get('question_type'), is_poll=stats.get('is_poll', False))
-        return jsonify({
-            'success': True,
-            'correct_answer': answer,
-            'stats': stats
-        })
-    else:
-        return jsonify({
-            'success': False,
-            'message': 'No question to reveal'
-        }), 404
+# Manual reveal route removed - auto-reveal is now mandatory
 
 @bp.route('/answer', methods=['POST'])
 def submit_answer():
@@ -638,27 +601,31 @@ def on_create_room(data):
 @socketio.on('start_game')
 def on_start_game(data):
     """Handle starting the game via socket (from TV view)."""
-    room_code = data.get('room_code')
+    try:
+        room_code = data.get('room_code')
 
-    if not room_code:
-        emit('error', {'message': 'No room code provided'})
-        return
+        if not room_code:
+            emit('error', {'message': 'No room code provided'})
+            return
 
-    success = game_engine.start_game(room_code)
+        success = game_engine.start_game(room_code)
 
-    if success:
-        # Notify all players that game is starting
-        socketio.emit('game_started', room=room_code)
+        if success:
+            # Notify all players that game is starting
+            socketio.emit('game_started', room=room_code)
 
-        # Send the first question immediately (no answer for players)
-        question = game_engine.get_current_question(room_code, include_answer=False)
-        if question:
-            socketio.emit('question_started', {'question': question}, room=room_code)
+            # Send the first question immediately (no answer for players)
+            question = game_engine.get_current_question(room_code, include_answer=False)
+            if question:
+                socketio.emit('question_started', {'question': question}, room=room_code)
 
-        emit('game_state_update', {'state': 'playing'})
-        log_event("socket_game_started", room_code=room_code)
-    else:
-        emit('error', {'message': 'Could not start game'})
+            emit('game_state_update', {'state': 'playing'})
+            log_event("socket_game_started", room_code=room_code)
+        else:
+            emit('error', {'message': 'Could not start game'})
+    except Exception as e:
+        emit('error', {'message': f'Failed to start game: {str(e)}'})
+        log_event("socket_start_game_failed", error=str(e))
 
 @socketio.on('next_question')
 def on_next_question(data):
@@ -707,8 +674,9 @@ def on_next_question(data):
 @socketio.on('join_game')
 def on_join_game(data):
     """Handle player joining via socket."""
-    room_code = data.get('room_code', '').upper()
-    player_name = data.get('player_name', '')
+    try:
+        room_code = data.get('room_code', '').upper()
+        player_name = data.get('player_name', '')
     
     if not room_code or not player_name:
         emit('join_error', {'message': 'Room code and player name are required'})
@@ -751,6 +719,9 @@ def on_join_game(data):
         log_event("socket_player_joined", room_code=room_code, player_id=player_id, player_name=player_name)
     else:
         emit('join_error', {'message': error_message or 'Could not join game. Check room code and try again.'})
+    except Exception as e:
+        emit('join_error', {'message': f'Failed to join game: {str(e)}'})
+        log_event("socket_join_game_failed", error=str(e))
 
 @socketio.on('submit_answer')
 def on_submit_answer(data):

@@ -6,6 +6,7 @@ Breaking changes require explicit version bump.
 
 import re
 import html
+import unicodedata
 from datetime import datetime
 from typing import Dict, List, Optional, Union
 from dataclasses import dataclass, field
@@ -205,18 +206,23 @@ class APIValidator:
     def validate_player_name(name: str) -> str:
         """
         Validate, normalize, and sanitize player name.
-        Escapes HTML to prevent XSS attacks.
+        - Normalizes unicode (NFC) to handle emoji/accents (BUG #14)
+        - Escapes HTML to prevent XSS attacks
         """
         if not isinstance(name, str):
             raise ValueError("Player name must be string")
 
-        # First strip whitespace, then escape HTML
-        normalized = html.escape(name.strip(), quote=True)
+        # Unicode normalization (NFC = canonical composition)
+        # Handles emoji, accented chars, and complex unicode
+        normalized = unicodedata.normalize('NFC', name.strip())
 
-        if not (1 <= len(normalized) <= 50):
+        # Escape HTML after unicode normalization
+        sanitized = html.escape(normalized, quote=True)
+
+        if not (1 <= len(sanitized) <= 50):
             raise ValueError(f"Player name must be 1-50 characters: {name}")
 
-        return normalized
+        return sanitized
     
     @staticmethod
     def validate_host_name(name: Optional[str]) -> str:

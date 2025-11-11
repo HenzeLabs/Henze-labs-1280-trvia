@@ -17,6 +17,7 @@ class Player:
     current_answer: Optional[str] = None  # Track what they answered
     join_time: datetime = field(default_factory=datetime.now)
     status: str = "alive"  # alive, ghost
+    total_answer_time: float = 0.0  # Sum of seconds taken to answer (for tie-breaking)
 
 @dataclass 
 class Question:
@@ -420,6 +421,10 @@ class GameEngine:
 
         current_question = session.questions[session.current_question_index]
 
+        # Track answer time for tie-breaking (BUG #11)
+        time_elapsed = (datetime.now() - session.current_question_start_time).total_seconds()
+        player.total_answer_time += time_elapsed
+
         player.answered_current = True
         player.current_answer = answer
 
@@ -681,25 +686,44 @@ class GameEngine:
         return self._advance_regular_flow(session)
     
     def get_leaderboard(self, room_code: str) -> List[Dict]:
-        """Get current leaderboard for a session."""
+        """
+        Get current leaderboard for a session.
+        Tie-breaker: If scores are equal, faster total answer time wins (BUG #11).
+        """
         session = self.active_sessions.get(room_code)
         if not session:
             return []
-        
-        # Sort players by score (descending)
-        sorted_players = sorted(session.players.values(), key=lambda p: p.score, reverse=True)
-        
+
+        # Sort players by score (descending), then by total_answer_time (ascending)
+        # Lower answer time = faster = better
+        sorted_players = sorted(
+            session.players.values(),
+            key=lambda p: (-p.score, p.total_answer_time)
+        )
+
         leaderboard = []
+        current_rank = 1
         for i, player in enumerate(sorted_players):
+            # Determine actual rank (handle ties)
+            if i > 0:
+                prev_player = sorted_players[i - 1]
+                if player.score == prev_player.score and player.total_answer_time == prev_player.total_answer_time:
+                    # Exact tie - use previous rank
+                    current_rank = leaderboard[-1]['rank']
+                else:
+                    # Different score or time - new rank
+                    current_rank = i + 1
+
             leaderboard.append({
-                'rank': i + 1,
-                'player_id': player.id,  # Added for frontend tracking
+                'rank': current_rank,
+                'player_id': player.id,
                 'name': player.name,
                 'score': player.score,
                 'answered_current': player.answered_current,
-                'status': player.status
+                'status': player.status,
+                'total_answer_time': round(player.total_answer_time, 2)  # For debugging
             })
-        
+
         return leaderboard
     
     def get_game_stats(self, room_code: str) -> Dict:
