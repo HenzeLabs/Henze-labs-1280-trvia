@@ -4,6 +4,7 @@ Loads questions from CSV files to make it easy to add/edit questions without tou
 """
 
 import csv
+import html
 from pathlib import Path
 from typing import List, Dict, Optional
 
@@ -15,6 +16,14 @@ class CSVQuestionLoader:
         # Try project root if relative path doesn't work
         if not self.base_path.exists():
             self.base_path = Path(__file__).parent.parent.parent.parent
+
+    @staticmethod
+    def _sanitize_text(text: str) -> str:
+        """
+        Sanitize user-provided text to prevent XSS attacks.
+        Escapes HTML entities while preserving the original text content.
+        """
+        return html.escape(text.strip(), quote=True)
 
     def load_sex_trivia(self) -> List[Dict]:
         """Load sex trivia questions from CSV."""
@@ -30,12 +39,12 @@ class CSVQuestionLoader:
                 reader = csv.DictReader(f)
                 for row in reader:
                     questions.append({
-                        'question': row['question'].strip(),
-                        'correct': row['correct_answer'].strip(),
+                        'question': self._sanitize_text(row['question']),
+                        'correct': self._sanitize_text(row['correct_answer']),
                         'wrong': [
-                            row['wrong_answer_1'].strip(),
-                            row['wrong_answer_2'].strip(),
-                            row['wrong_answer_3'].strip()
+                            self._sanitize_text(row['wrong_answer_1']),
+                            self._sanitize_text(row['wrong_answer_2']),
+                            self._sanitize_text(row['wrong_answer_3'])
                         ],
                         'difficulty': int(row.get('difficulty', 3))
                     })
@@ -60,15 +69,15 @@ class CSVQuestionLoader:
                 reader = csv.DictReader(f)
                 for row in reader:
                     questions.append({
-                        'question': row['question'].strip(),
-                        'correct': row['correct_answer'].strip(),
+                        'question': self._sanitize_text(row['question']),
+                        'correct': self._sanitize_text(row['correct_answer']),
                         'wrong': [
-                            row['wrong_answer_1'].strip(),
-                            row['wrong_answer_2'].strip(),
-                            row['wrong_answer_3'].strip()
+                            self._sanitize_text(row['wrong_answer_1']),
+                            self._sanitize_text(row['wrong_answer_2']),
+                            self._sanitize_text(row['wrong_answer_3'])
                         ],
                         'difficulty': int(row.get('difficulty', 3)),
-                        'category': row.get('category', 'GENERAL KNOWLEDGE').strip()
+                        'category': self._sanitize_text(row.get('category', 'GENERAL KNOWLEDGE'))
                     })
 
             print(f"✅ Loaded {len(questions)} regular trivia questions from CSV")
@@ -90,7 +99,7 @@ class CSVQuestionLoader:
             with open(csv_path, 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    questions.append(row['question'].strip())
+                    questions.append(self._sanitize_text(row['question']))
 
             print(f"✅ Loaded {len(questions)} poll questions from CSV")
         except Exception as e:
@@ -115,7 +124,7 @@ class CSVQuestionLoader:
                     scenario_raw = row.get('scenario', '')
                     if not scenario_raw:
                         continue  # Skip empty rows
-                    scenario = scenario_raw.strip()
+                    scenario = self._sanitize_text(scenario_raw)
 
                     # Auto-detect: Check if scenario has specific name callouts
                     has_name_callout = (

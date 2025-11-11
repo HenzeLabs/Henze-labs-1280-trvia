@@ -5,6 +5,7 @@ Breaking changes require explicit version bump.
 """
 
 import re
+import html
 from datetime import datetime
 from typing import Dict, List, Optional, Union
 from dataclasses import dataclass, field
@@ -202,14 +203,19 @@ class APIValidator:
     
     @staticmethod
     def validate_player_name(name: str) -> str:
-        """Validate and normalize player name."""
+        """
+        Validate, normalize, and sanitize player name.
+        Escapes HTML to prevent XSS attacks.
+        """
         if not isinstance(name, str):
             raise ValueError("Player name must be string")
-        
-        normalized = name.strip()
+
+        # First strip whitespace, then escape HTML
+        normalized = html.escape(name.strip(), quote=True)
+
         if not (1 <= len(normalized) <= 50):
             raise ValueError(f"Player name must be 1-50 characters: {name}")
-        
+
         return normalized
     
     @staticmethod

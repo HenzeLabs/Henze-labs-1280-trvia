@@ -330,7 +330,22 @@ def get_current_question_host(room_code):
 
 @bp.route('/reveal/<room_code>')
 def reveal_answer(room_code):
-    """Reveal the correct answer for the current question."""
+    """
+    DEPRECATED: Manual reveal endpoint (replaced by auto-reveal).
+    This route is disabled by default. Set ENABLE_MANUAL_REVEAL=true to enable.
+    """
+    from flask import current_app
+
+    # Feature flag guard: return 410 Gone if manual reveal is disabled
+    if not current_app.config.get('ENABLE_MANUAL_REVEAL', False):
+        return jsonify({
+            'success': False,
+            'message': 'Manual reveal is deprecated. This game uses auto-reveal.',
+            'error_code': 'FEATURE_DISABLED',
+            'hint': 'Set ENABLE_MANUAL_REVEAL=true to re-enable (not recommended)'
+        }), 410  # 410 Gone = endpoint exists but resource permanently removed
+
+    # Legacy manual reveal logic (only runs if feature flag enabled)
     answer = game_engine.get_question_answer(room_code)
     stats = game_engine.get_answer_stats(room_code)
 
@@ -417,7 +432,8 @@ def submit_answer():
             broadcast_player_list()
 
             # 🚀 AUTO-ADVANCE: Check if all players have answered
-            if session.phase == "question" and game_engine.all_players_answered(room_code):
+            # Use centralized phase list to ensure auto-reveal works for all question types
+            if session.phase in current_app.config['ALLOWED_AUTOREVEAL_PHASES'] and game_engine.all_players_answered(room_code):
                 # Prevent duplicate auto-advance tasks
                 if not session.auto_advance_pending:
                     session.auto_advance_pending = True

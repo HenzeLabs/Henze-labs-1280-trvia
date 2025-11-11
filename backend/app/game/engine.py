@@ -696,7 +696,10 @@ class GameEngine:
         alive_count = len(alive_players)
 
         all_answered = False
-        if session.phase == "question" and alive_count > 0:
+        # Use centralized phase list from config for auto-reveal eligibility
+        from flask import current_app
+        allowed_phases = current_app.config.get('ALLOWED_AUTOREVEAL_PHASES', ("question",))
+        if session.phase in allowed_phases and alive_count > 0:
             all_answered = all(p.answered_current for p in alive_players)
 
         # Calculate total answers across all questions

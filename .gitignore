@@ -30,7 +30,10 @@ ENV/
 Thumbs.db
 
 # Test Results
-test-results/
+test-results/screenshots/
+test-results/logs/
+!test-results/README.md
+!test-results/archive/
 playwright-report/
 playwright/.cache/
 
@@ -40,3 +43,8 @@ logs/
 
 # Product branch only - models directory doesn't belong on main
 backend/app/models/
+
+# Private Data (personal CSVs, survey data)
+archive/private_data/
+*_personalized.csv
+friend_group_data.csv

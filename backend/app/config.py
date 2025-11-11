@@ -45,8 +45,16 @@ class Config:
     
     # Question generation settings
     ROAST_QUESTION_RATIO = 0.4  # 40% roast questions
-    RECEIPT_QUESTION_RATIO = 0.3  # 30% receipt questions 
+    RECEIPT_QUESTION_RATIO = 0.3  # 30% receipt questions
     NORMAL_TRIVIA_RATIO = 0.3   # 30% normal trivia
+
+    # Feature Flags
+    ENABLE_MANUAL_REVEAL = os.environ.get('ENABLE_MANUAL_REVEAL', 'false').lower() == 'true'  # Deprecated: use auto-reveal
+    ENABLE_SURVEY_SYSTEM = os.environ.get('ENABLE_SURVEY_SYSTEM', 'false').lower() == 'true'  # Experimental
+    ENABLE_MINIGAMES = os.environ.get('ENABLE_MINIGAMES', 'false').lower() == 'true'  # Not implemented
+
+    # Auto-Reveal Configuration
+    ALLOWED_AUTOREVEAL_PHASES = ("question", "poll")  # Phases that trigger auto-reveal
 
 class DevelopmentConfig(Config):
     """Development configuration."""

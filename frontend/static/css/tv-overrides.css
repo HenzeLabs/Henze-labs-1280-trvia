@@ -1,0 +1,129 @@
+/**
+ * TV-ONLY OVERRIDES
+ *
+ * This file contains styles specific to the TV/spectator view that should NOT affect player views.
+ * Loaded AFTER unified-responsive.css to override shared styles.
+ *
+ * Use this file for:
+ * - Large screen optimizations (1920x1080 display)
+ * - TV-specific layout adjustments
+ * - Spectator mode UI elements
+ *
+ * DO NOT add mobile/tablet styles here - those belong in unified-responsive.css
+ */
+
+/* TV-Specific Layout Overrides */
+
+/* Ensure TV view never scrolls (always fit to screen) */
+body.tv-view {
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* TV-specific spacing adjustments for large displays */
+.tv-container {
+  max-width: none;  /* Remove max-width constraint on TV */
+  padding: 2rem;    /* Larger padding for big screens */
+}
+
+/* TV question text should be larger than player view */
+.tv-view .question-text {
+  font-size: 3rem;
+  line-height: 1.2;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* TV answer grid optimized for readability at distance */
+.tv-view .answers-grid {
+  gap: 2rem;  /* Larger gaps for TV viewing */
+  max-width: 1200px;
+  margin: 2rem auto;
+}
+
+/* TV leaderboard spacing */
+.tv-view .leaderboard {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* TV countdown bar positioning */
+.tv-view #countdown-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+}
+
+/* TV-specific button sizing (larger for visibility) */
+.tv-view .control-button,
+.tv-view .start-game-btn {
+  min-width: 200px;
+  font-size: 1.25rem;
+  padding: 1rem 2rem;
+}
+
+/* TV status banner (positioned at top, not blocking content) */
+.tv-view .status-banner {
+  position: fixed;
+  top: 100px;  /* Below header */
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 80%;
+  z-index: 1000;
+}
+
+/* Prevent mobile-specific styles from affecting TV */
+@media (min-width: 1280px) {
+  .tv-view .mobile-only {
+    display: none !important;
+  }
+
+  .tv-view .hide-on-tv {
+    display: none !important;
+  }
+}
+
+/* TV room code display (always large and centered) */
+.tv-view .room-code-display {
+  font-size: 6rem;
+  letter-spacing: 0.5rem;
+  font-weight: 800;
+}
+
+/* TV player count badge */
+.tv-view .player-count-badge {
+  font-size: 1.5rem;
+  padding: 0.75rem 1.5rem;
+}
+
+/* TV animation preferences (smooth but not distracting) */
+.tv-view * {
+  transition-duration: 0.3s;  /* Faster transitions for TV to feel responsive */
+}
+
+/* TV-specific grid layouts for results */
+.tv-view .results-grid {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+/* Ensure QR code container is visible on TV */
+.tv-view #tv-qr-code {
+  width: 200px;
+  height: 200px;
+  margin: 1rem auto;
+}
+
+/* TV progress indicator (always visible at top) */
+.tv-view .progress-indicator {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  font-size: 1.5rem;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  z-index: 1000;
+}

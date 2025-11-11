@@ -67,11 +67,24 @@ npx playwright show-report
 ```
 tests/
 ├── support/
-│   ├── global-setup.ts      # Global test initialization
-│   └── test-utils.ts        # Reusable test utilities
-├── complete-game-flow.spec.ts   # Full game flow tests
-└── simplified-game-flow.spec.ts # Quick smoke tests
+│   ├── global-setup.ts           # Global test initialization
+│   ├── test-utils.ts             # Reusable test utilities
+│   └── sessionLogger.ts          # Auto-archiving for screenshots
+├── ui-tour.spec.ts               # CI-friendly visual tour (13 screenshots)
+├── four-player-screenshot.spec.ts # Manual inspection (multi-device)
+├── full-game-validation.spec.ts  # End-to-end smoke test (10 questions)
+├── complete-game-flow.spec.ts    # Legacy full flow tests
+└── simplified-game-flow.spec.ts  # Legacy smoke tests
 ```
+
+### Test Categories
+
+**CI Tests (Run Automatically)**:
+- `ui-tour.spec.ts` - Production visual regression (45s)
+- `full-game-validation.spec.ts` - End-to-end smoke test (90s)
+
+**Manual Tests (Local Only)**:
+- `four-player-screenshot.spec.ts` - Multi-device layout validation (60s)
 
 ## Test Utilities
 
@@ -164,11 +177,67 @@ Set `CI=true` environment variable to enable CI mode:
 CI=true npx playwright test
 ```
 
+## Screenshot Organization
+
+### Active Screenshots (Checked into Git)
+```
+test-results/
+├── 01-home-page.png
+├── 02-tv-lobby-empty.png
+├── 03-join-page.png
+├── 04-player-lobby-waiting.png
+├── 05-tv-lobby-with-player.png
+├── 06-tv-question-screen.png
+├── 07-player-question-screen.png
+├── 08-player-answer-submitted.png
+├── 09-tv-answer-results.png
+├── 10-player-mid-game-q5.png
+├── 11-tv-mid-game-q5.png
+├── 12-player-final-results.png
+└── 13-tv-final-leaderboard.png
+```
+
+### Ephemeral Screenshots (Gitignored)
+- `test-results/screenshots/` - Per-run captures with timestamps
+- `test-results/logs/` - Session debug logs
+
+### Archived (Gitignored after 14 days)
+- `test-results/archive/ui_tour_YYYY-MM-DD/` - Archived tours
+- Run `scripts/cleanup-test-results.sh` to remove old artifacts
+
+## Known Test Issues
+
+See [docs/audits/KNOWN_ISSUES.md](../docs/audits/KNOWN_ISSUES.md) for bugs that may affect tests:
+- **Issue #1**: Poll questions may show 0 points
+- **Issue #2**: Timer accumulation on reconnect
+- **Issue #6**: Player rank shows "-" instead of position
+
 ## Debugging
 
 1. **Screenshots**: Automatically captured on failure in `test-results/`
 2. **Traces**: View with `npx playwright show-trace trace.zip`
 3. **Video**: Enable in `playwright.config.ts` if needed
+4. **Server Logs**: Check `/tmp/trivia_sim.log` for backend issues
+
+### Common Issues
+
+**Test times out waiting for question**:
+```bash
+# Check server logs
+tail -f /tmp/trivia_sim.log
+
+# Verify auto-advance is running
+curl http://localhost:5001/api/game/stats/<room_code>
+```
+
+**Server not starting**:
+```bash
+# Kill orphaned processes
+pkill -f "python.*run_server.py"
+
+# Restart server
+python run_server.py
+```
 
 ## Tips
 
@@ -176,3 +245,4 @@ CI=true npx playwright test
 - Check `test-results/` for failure screenshots
 - Use `--headed` flag to see browser during test execution
 - Use `test.only()` to run a single test
+- Mark manual tests with `.skip(process.env.CI === 'true')` for local-only execution
