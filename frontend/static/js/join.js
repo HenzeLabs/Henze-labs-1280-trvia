@@ -75,6 +75,10 @@ class JoinGame {
             });
 
             if (response.success) {
+                // Persist creator status so the player dashboard can unlock host controls
+                sessionStorage.setItem('is_creator', response.is_creator ? 'true' : 'false');
+                sessionStorage.setItem('player_id', response.player_id);
+                sessionStorage.setItem('room_code', response.room_code);
                 // Redirect to player dashboard
                 window.location.href = `/player/${response.player_id}`;
             } else {

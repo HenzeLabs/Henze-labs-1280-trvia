@@ -10,7 +10,7 @@
  * - Resume to see the next screen
  */
 
-import { test, expect } from "@playwright/test";
+import { test, expect, Page } from "@playwright/test";
 import {
   createGame,
   joinGame,
@@ -19,6 +19,16 @@ import {
   waitForNextQuestion,
   getCurrentQuestion,
 } from "./support/test-utils";
+
+const shouldPauseForUITour = process.env.CI !== "true";
+
+async function maybePause(page: Page) {
+  if (shouldPauseForUITour) {
+    await page.pause();
+  } else {
+    await page.waitForTimeout(500);
+  }
+}
 
 test.describe.configure({ mode: "serial" }); // Run tests in order
 
@@ -44,7 +54,7 @@ test.describe("🎨 UI Visual Tour", () => {
       console.log("   - Check button styles");
       console.log("   - Verify Netflix aesthetic");
       console.log("   - Test responsive layout");
-      await tvPage.pause();
+      await maybePause(tvPage);
 
       // ========================================
       // 📺 SCREEN 2: TV Waiting/Lobby Screen
@@ -57,7 +67,7 @@ test.describe("🎨 UI Visual Tour", () => {
       console.log("   - Check room code display");
       console.log("   - Verify start button (should be disabled)");
       console.log("   - Check player count (should be 0)");
-      await tvPage.pause();
+      await maybePause(tvPage);
 
       // ========================================
       // 📱 SCREEN 3: Join Page (Player Phone)
@@ -70,7 +80,7 @@ test.describe("🎨 UI Visual Tour", () => {
       console.log("   - Check input field styles");
       console.log("   - Verify mobile-friendly layout");
       console.log("   - Test form validation");
-      await playerPage.pause();
+      await maybePause(playerPage);
 
       // ========================================
       // 🎮 SCREEN 4: Player Lobby (Waiting)
@@ -82,13 +92,13 @@ test.describe("🎨 UI Visual Tour", () => {
       console.log(`   - Room Code Display: ${roomCode}`);
       console.log("   - Check waiting screen styling");
       console.log("   - Verify room code visibility");
-      await playerPage.pause();
+      await maybePause(playerPage);
 
       // Check TV updated with player count
       console.log("✋ PAUSED - Check TV UPDATED with player");
       console.log("   - Player count should show 1");
       console.log("   - Start button should be enabled");
-      await tvPage.pause();
+      await maybePause(tvPage);
 
       // ========================================
       // 🎯 SCREEN 5: Question Screen (TV)
@@ -102,7 +112,7 @@ test.describe("🎨 UI Visual Tour", () => {
       console.log("   - Check question text size/readability");
       console.log("   - Verify answer display");
       console.log("   - Check category badge");
-      await tvPage.pause();
+      await maybePause(tvPage);
 
       // ========================================
       // 📱 SCREEN 6: Question Screen (Player Phone)
@@ -116,7 +126,7 @@ test.describe("🎨 UI Visual Tour", () => {
       console.log("   - Check mobile question layout");
       console.log("   - Verify answer button styles");
       console.log("   - Test touch-friendly sizes");
-      await playerPage.pause();
+      await maybePause(playerPage);
 
       // ========================================
       // ✅ SCREEN 7: Answer Submitted (Player)
@@ -128,7 +138,7 @@ test.describe("🎨 UI Visual Tour", () => {
       console.log("   - Check submitted state styling");
       console.log("   - Verify waiting message");
       console.log("   - Check for feedback indicators");
-      await playerPage.pause();
+      await maybePause(playerPage);
 
       // ========================================
       // ⏭️ SCREEN 8: Auto-Advance to Next Question
@@ -143,7 +153,7 @@ test.describe("🎨 UI Visual Tour", () => {
       console.log(`   - Current: ${secondQuestion?.substring(0, 50)}...`);
       console.log("   - Check transition smoothness");
       console.log("   - Verify question counter updated");
-      await playerPage.pause();
+      await maybePause(playerPage);
 
       // ========================================
       // 🎊 SCREEN 9: Answer Multiple Questions
@@ -170,7 +180,7 @@ test.describe("🎨 UI Visual Tour", () => {
       console.log("   - Verify score display");
       console.log("   - Check final rank");
       console.log("   - Test results layout");
-      await playerPage.pause();
+      await maybePause(playerPage);
 
       // ========================================
       // 📺 SCREEN 11: TV Final State
@@ -179,7 +189,7 @@ test.describe("🎨 UI Visual Tour", () => {
       console.log("✋ PAUSED - Inspecting TV END STATE");
       console.log("   - Check TV final screen");
       console.log("   - Verify leaderboard on TV");
-      await tvPage.pause();
+      await maybePause(tvPage);
 
       console.log("\n✅ UI TOUR COMPLETE!");
       console.log("All screens have been inspected.");
@@ -207,14 +217,14 @@ test.describe("🎨 UI Visual Tour", () => {
 
       console.log("\n📺 TV with 0 players");
       console.log("✋ PAUSED - Check empty lobby state");
-      await tvPage.pause();
+      await maybePause(tvPage);
 
       // First player joins
       await joinGame(player1Page, roomCode, "Player 1");
 
       console.log("\n👤 TV with 1 player");
       console.log("✋ PAUSED - Check 1-player lobby state");
-      await tvPage.pause();
+      await maybePause(tvPage);
 
       // Second player joins
       await joinGame(player2Page, roomCode, "Player 2");
@@ -223,7 +233,7 @@ test.describe("🎨 UI Visual Tour", () => {
       console.log("✋ PAUSED - Check 2-player lobby state");
       console.log("   - Verify both players shown");
       console.log("   - Check player list styling");
-      await tvPage.pause();
+      await maybePause(tvPage);
 
       console.log("\n✅ LOBBY TOUR COMPLETE!");
 

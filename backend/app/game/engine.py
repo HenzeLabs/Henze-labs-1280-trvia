@@ -45,6 +45,7 @@ class GameSession:
     final_sprint_questions: List[Question] = field(default_factory=list)
     final_sprint_state: Optional[Dict] = None
     created_at: datetime = field(default_factory=datetime.now)
+    auto_advance_pending: bool = False  # Prevent duplicate auto-advance tasks
 
 class GameEngine:
     """Core game engine for managing trivia sessions."""
@@ -145,6 +146,10 @@ class GameEngine:
         player = Player(id=player_id, name=player_name)
         session.players[player_id] = player
         self.player_sessions[player_id] = room_code
+
+        # Mark the first player as the creator so they can control the game flow
+        if not session.creator_player_id:
+            session.creator_player_id = player_id
         
         return player_id, None
     

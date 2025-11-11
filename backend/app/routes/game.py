@@ -1,5 +1,6 @@
 """Game-related routes and WebSocket events."""
 
+import logging
 from flask import Blueprint, request, jsonify
 from flask_socketio import emit, join_room, leave_room
 from typing import Dict, Optional
@@ -20,6 +21,40 @@ bp = Blueprint('game', __name__, url_prefix='/api/game')
 question_manager = QuestionGeneratorManager()
 db = Database(str(Config.DATABASE_PATH))
 message_model = Message(db)
+logger = logging.getLogger(__name__)
+
+
+def log_event(event: str, **payload):
+    logger.info("%s | %s", event, payload)
+
+def _build_player_list(session):
+    """Return leaderboard-style player data with ranks for socket broadcasts."""
+    leaderboard = game_engine.get_leaderboard(session.room_code)
+    if leaderboard:
+        return [
+            {
+                'id': entry['player_id'],
+                'name': entry['name'],
+                'score': entry['score'],
+                'rank': entry['rank'],
+                'status': entry.get('status'),
+                'answered_current': entry.get('answered_current', False)
+            }
+            for entry in leaderboard
+        ]
+
+    # Fallback if leaderboard is empty (e.g., before any scoring)
+    fallback = []
+    for idx, player in enumerate(session.players.values()):
+        fallback.append({
+            'id': player.id,
+            'name': player.name,
+            'score': player.score,
+            'rank': idx + 1,
+            'status': player.status,
+            'answered_current': player.answered_current
+        })
+    return fallback
 
 def auto_advance_after_all_answered(room_code: str):
     """Auto-advance to next question after all players answered.
@@ -29,40 +64,79 @@ def auto_advance_after_all_answered(room_code: str):
     2. It survives server reloads (as long as use_reloader=False)
     3. It can emit events to rooms without additional context setup
     """
-    print(f"⏱️  All players answered in {room_code} - auto-advancing in 5 seconds...")
+    try:
+        log_event("auto_advance_pending", room_code=room_code)
+        session = game_engine.get_session(room_code)
+        if not session:
+            log_event("auto_advance_missing_session", room_code=room_code)
+            return
 
-    # Wait 5 seconds to show results
-    socketio.sleep(5)  # Use socketio.sleep() instead of time.sleep() for better integration
+        if session.phase != "question":
+            log_event("auto_advance_skipped", room_code=room_code, phase=session.phase)
+            return
 
-    print(f"🚀 Auto-advance timer expired for {room_code}, advancing now...")
+        socketio.sleep(Config.AUTO_REVEAL_DELAY)
 
-    # Advance to next question
-    result = game_engine.next_question(room_code)
-    result_type = result.get('type')
+        # Get answer stats (triggers poll scoring) and reveal answer
+        stats = game_engine.get_answer_stats(room_code)
+        answer = game_engine.get_question_answer(room_code)
+        reveal_duration = 0
+        
+        if stats and answer:
+            socketio.emit('answer_revealed', {
+                'room_code': room_code,
+                'correct_answer': answer,
+                'stats': stats
+            }, room=room_code)
+            log_event("answer_revealed", room_code=room_code, is_poll=stats.get('is_poll', False))
+            reveal_duration = Config.AUTO_REVEAL_DISPLAY_TIME
+        
+        # Update leaderboard after scoring (especially for poll questions)
+        refreshed_session = game_engine.get_session(room_code)
+        if refreshed_session:
+            player_list = _build_player_list(refreshed_session)
+            socketio.emit('player_list_updated', {
+                'players': player_list,
+                'total_players': len(player_list)
+            }, room=room_code)
+        
+        if reveal_duration:
+            socketio.sleep(reveal_duration)
 
-    if result_type == 'question':
-        question = result.get('question') or game_engine.get_current_question(room_code)
-        if question:
-            socketio.emit('new_question', {'question': question}, room=room_code)
-            print(f"✅ Auto-advanced to next question in {room_code}")
-        else:
-            print(f"❌ No question found after auto-advance in {room_code}")
+        log_event("auto_advance_run", room_code=room_code)
 
-    elif result_type == 'final_sprint':
-        question = result.get('question') or game_engine.get_current_question(room_code)
-        socketio.emit('final_sprint_started', {
-            'question': question,
-            'positions': result.get('positions', {}),
-            'goal': result.get('goal')
-        }, room=room_code)
-        if question:
-            socketio.emit('new_question', {'question': question}, room=room_code)
-        print(f"✅ Auto-started final sprint in {room_code}")
+        # Advance to next question
+        result = game_engine.next_question(room_code)
+        result_type = result.get('type')
 
-    elif result_type == 'game_finished':
-        summary = result.get('summary')
-        socketio.emit('game_finished', {'summary': summary}, room=room_code)
-        print(f"🏁 Game finished in {room_code}")
+        if result_type == 'question':
+            question = result.get('question') or game_engine.get_current_question(room_code)
+            if question:
+                socketio.emit('new_question', {'question': question}, room=room_code)
+                log_event("auto_advance_question", room_code=room_code)
+            else:
+                log_event("auto_advance_missing_question", room_code=room_code)
+
+        elif result_type == 'final_sprint':
+            question = result.get('question') or game_engine.get_current_question(room_code)
+            socketio.emit('final_sprint_started', {
+                'question': question,
+                'positions': result.get('positions', {}),
+                'goal': result.get('goal')
+            }, room=room_code)
+            if question:
+                socketio.emit('new_question', {'question': question}, room=room_code)
+            log_event("auto_advance_final_sprint", room_code=room_code)
+
+        elif result_type == 'game_finished':
+            summary = result.get('summary')
+            socketio.emit('game_finished', {'summary': summary}, room=room_code)
+            log_event("auto_advance_game_finished", room_code=room_code)
+    finally:
+        # Reset auto-advance flag
+        session = game_engine.get_session(room_code)
+        if session:
+            session.auto_advance_pending = False
 
 @bp.route('/create', methods=['POST'])
 def create_game():
@@ -93,13 +167,13 @@ def create_game():
             try:
                 chat_messages = parser.get_chat_messages(chat_name, limit=1000, months_back=12)
                 all_messages.extend(chat_messages)
-                print(f"✅ Loaded {len(chat_messages)} messages from '{chat_name}'")
+                log_event("chat_messages_loaded", chat_name=chat_name, count=len(chat_messages))
             except Exception as e:
-                print(f"⚠️ Error loading chat '{chat_name}': {e}")
+                log_event("chat_messages_error", chat_name=chat_name, error=str(e))
 
         # Fallback to sample data if no messages loaded
         if not all_messages:
-            print("⚠️ No real messages loaded, using sample data")
+            log_event("chat_messages_sample_data")
             all_messages = [
                 {
                     'id': 1,
@@ -124,7 +198,7 @@ def create_game():
                 }
             ]
         else:
-            print(f"🎉 Total messages loaded: {len(all_messages)}")
+            log_event("chat_messages_total", count=len(all_messages))
 
         # Generate core and final sprint question sets
         # Use num_questions from request, default to 15 if not specified
@@ -132,10 +206,20 @@ def create_game():
         questions = question_manager.generate_question_set(all_messages, num_questions=core_questions)
         # Sprint questions should be ~40% of core questions, minimum 3
         sprint_count = max(3, int(core_questions * 0.4))
-        sprint_questions = question_manager.generate_question_set(all_messages, num_questions=sprint_count)
+        sprint_candidates = question_manager.generate_question_set(all_messages, num_questions=sprint_count)
+        sprint_questions = [
+            question for question in sprint_candidates
+            if question.get('question_type') not in ('poll', 'personalized_roast', 'personalized_ranking')
+        ]
+        if not sprint_questions:
+            sprint_questions = [
+                question for question in questions
+                if question.get('question_type') not in ('poll', 'personalized_roast', 'personalized_ranking')
+            ]
 
         # Create game session (no creator player needed)
         room_code = game_engine.create_session(questions, sprint_questions)
+        log_event("game_created", room_code=room_code, total_questions=len(questions), sprint_questions=len(sprint_questions))
 
         return jsonify({
             'success': True,
@@ -172,8 +256,7 @@ def join_game():
         session = game_engine.get_session(room_code)
         if session:
             # Create player list for broadcasting
-            player_list = [{'id': p.id, 'name': p.name, 'score': p.score, 'status': p.status, 'answered_current': p.answered_current} 
-                          for p in session.players.values()]
+            player_list = _build_player_list(session)
             
             # Emit to all clients in the room (including host)
             socketio.emit('player_list_updated', {
@@ -181,13 +264,16 @@ def join_game():
                 'total_players': len(player_list)
             }, room=room_code)
         
+        log_event("player_joined", room_code=room_code, player_id=player_id, player_name=player_name)
         return jsonify({
             'success': True,
             'player_id': player_id,
             'room_code': room_code,
+            'is_creator': session.creator_player_id == player_id,
             'message': f'Joined game successfully!'
         })
     else:
+        log_event("player_join_failed", room_code=room_code, player_name=player_name, error=error_message)
         return jsonify({
             'success': False,
             'message': error_message or 'Could not join game. Check room code and try again.'
@@ -199,6 +285,7 @@ def start_game_api(room_code):
     success = game_engine.start_game(room_code)
 
     if success:
+        log_event("game_started", room_code=room_code)
         # Notify all players that game is starting
         socketio.emit('game_started', room=room_code)
 
@@ -209,6 +296,7 @@ def start_game_api(room_code):
 
         return jsonify({'success': True, 'message': 'Game started!'})
     else:
+        log_event("game_start_failed", room_code=room_code)
         return jsonify({
             'success': False,
             'message': 'Could not start game'
@@ -247,6 +335,12 @@ def reveal_answer(room_code):
     stats = game_engine.get_answer_stats(room_code)
 
     if answer and stats:
+        socketio.emit('answer_revealed', {
+            'room_code': room_code,
+            'correct_answer': answer,
+            'stats': stats
+        }, room=room_code)
+        log_event("answer_revealed", room_code=room_code, question_type=stats.get('question_type'), is_poll=stats.get('is_poll', False))
         return jsonify({
             'success': True,
             'correct_answer': answer,
@@ -283,16 +377,7 @@ def submit_answer():
         room_code = session.room_code
 
         def broadcast_player_list():
-            player_list = [
-                {
-                    'id': p.id,
-                    'name': p.name,
-                    'score': p.score,
-                    'status': p.status,
-                    'answered_current': p.answered_current
-                }
-                for p in session.players.values()
-            ]
+            player_list = _build_player_list(session)
             socketio.emit('player_list_updated', {
                 'players': player_list,
                 'total_players': len(player_list)
@@ -322,6 +407,7 @@ def submit_answer():
         phase = result.get('phase')
 
         if phase == 'question' and result.get('success'):
+            log_event("answer_submitted", room_code=room_code, player_id=player_id, is_correct=result.get('is_correct'), question_phase='question')
             socketio.emit('player_answered', {
                 'player_id': player_id,
                 'is_correct': result.get('is_correct', False),
@@ -331,32 +417,39 @@ def submit_answer():
             broadcast_player_list()
 
             # 🚀 AUTO-ADVANCE: Check if all players have answered
-            if game_engine.all_players_answered(room_code):
-                print(f"✅ All players answered in {room_code}, starting auto-advance background task...")
+            if session.phase == "question" and game_engine.all_players_answered(room_code):
+                # Prevent duplicate auto-advance tasks
+                if not session.auto_advance_pending:
+                    session.auto_advance_pending = True
+                    log_event("all_players_answered", room_code=room_code)
 
-                # Start auto-advance as a SocketIO background task
-                # This ensures proper context and survival across reloads
-                socketio.start_background_task(auto_advance_after_all_answered, room_code)
+                    # Start auto-advance as a SocketIO background task
+                    socketio.start_background_task(auto_advance_after_all_answered, room_code)
 
-                # Notify players that everyone answered
-                answered, total = game_engine.get_answered_count(room_code)
-                socketio.emit('all_players_answered', {
-                    'message': f'All players answered! Moving to next question in 5 seconds...',
-                    'answered': answered,
-                    'total': total
-                }, room=room_code)
-                print(f"📢 Broadcast all_players_answered to room {room_code}")
+                    # Notify players that everyone answered
+                    answered, total = game_engine.get_answered_count(room_code)
+                    socketio.emit('all_players_answered', {
+                        'message': 'All players answered! Revealing answer in 5 seconds...',
+                        'answered': answered,
+                        'total': total
+                    }, room=room_code)
+                    log_event("all_players_answered_broadcast", room_code=room_code)
+                else:
+                    log_event("auto_advance_already_pending", room_code=room_code)
 
         elif phase == 'final_sprint':
             if result.get('awaiting'):
+                log_event("answer_submitted", room_code=room_code, player_id=player_id, phase='final_sprint', awaiting=True)
                 socketio.emit('final_sprint_waiting', {'player_id': player_id}, room=room_code)
             elif result.get('question_complete'):
+                log_event("final_sprint_question_complete", room_code=room_code)
                 socketio.emit('final_sprint_update', {
                     'results': result['results'],
                     'positions': result.get('positions', {})
                 }, room=room_code)
                 emit_next_step(result.get('next_step'))
             elif result.get('final_sprint_complete'):
+                log_event("final_sprint_complete", room_code=room_code, winner_id=result.get('winner_id'))
                 socketio.emit('final_sprint_update', {
                     'results': result['results'],
                     'winner_id': result.get('winner_id'),
@@ -413,16 +506,7 @@ def next_question(room_code):
             socketio.emit('new_question', {'question': question}, room=room_code)
         session = game_engine.get_session(room_code)
         if session:
-            player_list = [
-                {
-                    'id': p.id,
-                    'name': p.name,
-                    'score': p.score,
-                    'status': p.status,
-                    'answered_current': p.answered_current
-                }
-                for p in session.players.values()
-            ]
+            player_list = _build_player_list(session)
             socketio.emit('player_list_updated', {
                 'players': player_list,
                 'total_players': len(player_list)
@@ -524,11 +608,11 @@ def on_create_room(data):
             'final_sprint_questions': 0
         })
 
-        print(f"Game room {room_code} created (waiting for players to join)")
+        log_event("socket_room_created", room_code=room_code, total_questions=len(questions))
         
     except Exception as e:
         emit('error', {'message': f'Failed to create room: {str(e)}'})
-        print(f"Error creating room: {e}")
+        log_event("socket_room_create_failed", error=str(e))
 
 @socketio.on('start_game')
 def on_start_game(data):
@@ -551,7 +635,7 @@ def on_start_game(data):
             socketio.emit('question_started', {'question': question}, room=room_code)
 
         emit('game_state_update', {'state': 'playing'})
-        print(f"Game started in room {room_code}")
+        log_event("socket_game_started", room_code=room_code)
     else:
         emit('error', {'message': 'Could not start game'})
 
@@ -612,6 +696,8 @@ def on_join_game(data):
     player_id, error_message = game_engine.join_session(room_code, player_name)
 
     if player_id:
+        session = game_engine.get_session(room_code)
+
         # Join the socket room
         join_room(room_code)
         
@@ -619,14 +705,13 @@ def on_join_game(data):
         emit('joined_game', {
             'player_id': player_id,
             'room_code': room_code,
-            'player_name': player_name
+            'player_name': player_name,
+            'is_creator': session.creator_player_id == player_id if session else False
         })
         
         # Update all clients with new player list
-        session = game_engine.get_session(room_code)
         if session:
-            player_list = [{'id': p.id, 'name': p.name, 'score': p.score, 'status': p.status, 'answered_current': p.answered_current} 
-                          for p in session.players.values()]
+            player_list = _build_player_list(session)
             
             socketio.emit('player_joined', {
                 'player_name': player_name,
@@ -639,7 +724,7 @@ def on_join_game(data):
                 'total_players': len(player_list)
             }, room=room_code)
         
-        print(f"Player {player_name} ({player_id}) joined room {room_code}")
+        log_event("socket_player_joined", room_code=room_code, player_id=player_id, player_name=player_name)
     else:
         emit('join_error', {'message': error_message or 'Could not join game. Check room code and try again.'})
 
@@ -679,7 +764,7 @@ def on_submit_answer(data):
                     'results': game_engine.get_leaderboard(session.room_code)
                 }, room=session.room_code)
         
-        print(f"Player {player_id} submitted answer: {answer} ({'correct' if result.get('is_correct') else 'incorrect'})")
+        log_event("socket_player_answered", player_id=player_id, answer=answer, is_correct=result.get('is_correct'))
     else:
         emit('answer_error', {'message': result.get('message', 'Failed to submit answer')})
 
@@ -689,26 +774,25 @@ def on_join_room(data):
     room_code = data.get('room_code')
     player_id = data.get('player_id')
     
-    print(f"Player {player_id} attempting to join room {room_code}")
+    log_event("socket_join_room_attempt", player_id=player_id, room_code=room_code)
     
     if room_code:
         join_room(room_code)
-        print(f"Player {player_id} joined room {room_code}")
+        log_event("socket_join_room_success", player_id=player_id, room_code=room_code)
         
         # Get updated player list and broadcast
         session = game_engine.get_session(room_code)
         if session:
-            player_list = [{'id': p.id, 'name': p.name, 'score': p.score, 'status': p.status, 'answered_current': p.answered_current} 
-                          for p in session.players.values()]
+            player_list = _build_player_list(session)
             socketio.emit('player_list_updated', {
                 'players': player_list,
                 'total_players': len(player_list)
             }, room=room_code)
-            print(f"Emitted player_list_updated to room {room_code}")
+            log_event("socket_player_list_emitted", room_code=room_code, total_players=len(player_list))
         else:
-            print(f"No session found for room {room_code}")
+            log_event("socket_join_room_missing_session", room_code=room_code)
     else:
-        print("No room code provided in join_room event")
+        log_event("socket_join_room_missing_code", player_id=player_id)
 
 @socketio.on('leave_room')
 def on_leave_room(data):

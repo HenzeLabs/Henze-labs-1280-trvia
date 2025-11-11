@@ -34,6 +34,13 @@ npx playwright test
 npx playwright test complete-game-flow.spec.ts
 ```
 
+#### Capture four-player screenshot flow
+```bash
+npx playwright test four-player-screenshot.spec.ts --project=chromium-desktop
+```
+
+This test spins up the TV plus four player browsers, plays through an entire game, and saves staged screenshots for every question (TV + each player) inside `test-results/screenshots/`. It also writes a structured log of every action, network request, and console message to `test-results/logs/`.
+
 ### Run with UI mode (interactive):
 ```bash
 npx playwright test --ui

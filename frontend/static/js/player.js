@@ -13,11 +13,24 @@ class PlayerDashboard {
     this.finalSprintInfo = { positions: {}, goal: null };
     this.playerDirectory = {};
     this.isCreator = sessionStorage.getItem("is_creator") === "true";
+    this.timer = null;
+    this.answerButtons = [];
+    this.selectedAnswer = null;
+    this.overlayProgress = { answered: 0, total: 0 };
+    this.overlayEl = null;
+    this.overlayMessageEl = null;
+    this.overlaySubtextEl = null;
+    this.overlayResultEl = null;
+    this.countdownTimeout = null;
 
     this.init();
   }
 
   init() {
+    this.overlayEl = document.getElementById("waiting-next");
+    this.overlayMessageEl = document.getElementById("overlay-message");
+    this.overlaySubtextEl = document.getElementById("overlay-subtext");
+    this.overlayResultEl = document.getElementById("last-answer-result");
     this.initializeSocket();
     this.loadGameInfo();
     this.bindEvents();
@@ -91,7 +104,18 @@ class PlayerDashboard {
 
     this.socket.on("all_players_answered", (data) => {
       console.log("All players answered:", data);
-      this.setStatusBanner("Everyone's in! Next question loading...", "info");
+      this.setStatusBanner("Everyone's in! Revealing answer...", "info");
+      this.overlayProgress = {
+        answered: data.answered,
+        total: data.total,
+      };
+      this.showSubmissionOverlay("Everyone's in!", this.getOverlayProgressText());
+      this.showCountdownBar((data && data.delay_ms) || 5000);
+    });
+
+    this.socket.on("answer_revealed", (data) => {
+      console.log("Answer revealed for players:", data);
+      this.onAnswerRevealed(data);
     });
   }
 
@@ -351,23 +375,27 @@ class PlayerDashboard {
   }
 
   displayQuestion(question) {
+    this.clearTimer();
+    this.clearCountdownBar();
     this.currentQuestion = question;
     this.hasAnswered = false;
-    const phase = question.phase || "question";
+    this.selectedAnswer = null;
     this.clearPhaseUI();
+    this.hideSubmissionOverlay();
+    this.answerButtons = [];
+    const phase = question.phase || "question";
 
     this.minigameTargets = question.targets || this.minigameTargets;
 
     app.setText("question-category", question.category || "");
     app.setText("question-text", question.question_text || "");
     app.setText("current-question-num", (question.id ?? 0) + 1);
+    if (question.total_questions !== undefined) {
+      app.setText("total-questions", question.total_questions);
+    }
 
     const answersContainer = document.getElementById("mobile-answers");
     answersContainer.innerHTML = "";
-
-    console.log("Creating answer buttons for question:", question);
-    console.log("Answers array:", question.answers);
-    console.log("Answers container:", answersContainer);
 
     const isGhost = this.status !== "alive";
     const isTarget = this.minigameTargets.includes(this.playerId);
@@ -410,6 +438,7 @@ class PlayerDashboard {
       button.className = "answer-btn mobile-answer";
       button.textContent = `${String.fromCharCode(65 + index)}) ${answer}`;
       button.setAttribute("data-testid", `answer-${index}`); // Add test ID for Playwright
+      button.dataset.answerValue = answer;
 
       const canAnswer =
         phase === "final_sprint" ||
@@ -422,17 +451,24 @@ class PlayerDashboard {
       }
 
       answersContainer.appendChild(button);
+      this.answerButtons.push(button);
     });
 
     this.timeRemaining = question.time_remaining || 30;
     this.startTimer();
 
     app.show("question-screen");
-    app.hide("waiting-next");
+    this.hideSubmissionOverlay();
     app.hide("answer-feedback");
   }
 
   startTimer() {
+    // CRITICAL: Clear any existing timer to prevent accumulation
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+    
     this.updateTimerDisplay();
 
     this.timer = setInterval(() => {
@@ -441,6 +477,7 @@ class PlayerDashboard {
 
       if (this.timeRemaining <= 0) {
         clearInterval(this.timer);
+        this.timer = null;
         if (!this.hasAnswered) {
           this.showTimeUp();
         }
@@ -450,6 +487,13 @@ class PlayerDashboard {
 
   updateTimerDisplay() {
     app.setText("time-remaining", this.timeRemaining);
+  }
+
+  clearTimer() {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
   }
 
   async submitAnswer(answer) {
@@ -476,6 +520,8 @@ class PlayerDashboard {
 
     this.hasAnswered = true;
     this.disableAnswerButtons();
+    this.markSelectedAnswer(answer);
+    this.showSubmissionOverlay("Answer locked!", this.getOverlayProgressText());
 
     try {
       const response = await app.apiCall("/game/answer", {
@@ -487,6 +533,7 @@ class PlayerDashboard {
       });
 
       if (response.phase === "minigame") {
+        this.hideSubmissionOverlay();
         if (response.awaiting) {
           this.setStatusBanner(
             "Choice locked. Waiting for the other victims...",
@@ -497,6 +544,7 @@ class PlayerDashboard {
       }
 
       if (response.phase === "final_sprint") {
+        this.hideSubmissionOverlay();
         if (response.awaiting) {
           this.setStatusBanner(
             "Answer locked. Waiting on the rest of the room...",
@@ -521,6 +569,7 @@ class PlayerDashboard {
       this.showError("Failed to submit answer");
       this.hasAnswered = false;
       this.enableAnswerButtons();
+      this.hideSubmissionOverlay();
     }
   }
 
@@ -548,18 +597,15 @@ class PlayerDashboard {
 
     app.show("answer-feedback");
 
-    // Show waiting screen after 3 seconds
-    setTimeout(() => {
-      this.showWaitingNext();
-    }, 3000);
+    this.showWaitingNext();
   }
 
   showWaitingNext() {
-    app.hide("question-screen");
-    app.show("waiting-next");
+    this.showSubmissionOverlay("Answer submitted!", this.getOverlayProgressText());
   }
 
   showTimeUp() {
+    this.clearTimer();
     const feedbackDiv = document.getElementById("answer-feedback");
     const messageDiv = document.getElementById("feedback-message");
     const pointsDiv = document.getElementById("points-earned");
@@ -570,9 +616,7 @@ class PlayerDashboard {
 
     app.show("answer-feedback");
 
-    setTimeout(() => {
-      this.showWaitingNext();
-    }, 2000);
+    this.showSubmissionOverlay("Time's up!", "Waiting for reveal...");
   }
 
   updateScore(newScore) {
@@ -594,11 +638,163 @@ class PlayerDashboard {
         }
       }
     });
+    const alivePlayers = players.filter((player) => player.status === "alive");
+    const answeredCount = alivePlayers.filter((player) => player.answered_current)
+      .length;
+    this.overlayProgress = {
+      answered: answeredCount,
+      total: alivePlayers.length,
+    };
+    this.updateOverlayProgressText();
+  }
+
+  showCountdownBar(duration = 5000) {
+    let bar = document.getElementById("countdown-bar");
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.id = "countdown-bar";
+      document.body.appendChild(bar);
+    }
+
+    bar.style.width = "100%";
+    bar.style.transition = "none";
+
+    requestAnimationFrame(() => {
+      bar.style.transition = `width ${duration}ms linear`;
+      bar.style.width = "0%";
+    });
+
+    if (this.countdownTimeout) {
+      clearTimeout(this.countdownTimeout);
+      this.countdownTimeout = null;
+    }
+    this.countdownTimeout = setTimeout(() => {
+      if (bar && bar.parentNode) {
+        bar.parentNode.removeChild(bar);
+      }
+      this.countdownTimeout = null;
+    }, duration + 200);
+  }
+
+  clearCountdownBar() {
+    if (this.countdownTimeout) {
+      clearTimeout(this.countdownTimeout);
+      this.countdownTimeout = null;
+    }
+    const existingBar = document.getElementById("countdown-bar");
+    if (existingBar && existingBar.parentNode) {
+      existingBar.parentNode.removeChild(existingBar);
+    }
+  }
+
+  showSubmissionOverlay(message, subtext = "") {
+    if (!this.overlayEl || !this.overlayMessageEl || !this.overlaySubtextEl) {
+      return;
+    }
+    this.overlayMessageEl.textContent = message;
+    this.overlaySubtextEl.textContent = subtext || "";
+    if (this.overlayResultEl) {
+      this.overlayResultEl.textContent = "";
+    }
+    this.overlayEl.classList.remove("hidden");
+  }
+
+  hideSubmissionOverlay() {
+    if (this.overlayEl) {
+      this.overlayEl.classList.add("hidden");
+    }
+  }
+
+  getOverlayProgressText() {
+    const { answered, total } = this.overlayProgress;
+    if (!total) return "";
+    const base = `${answered}/${total} answered`;
+    if (answered >= total) {
+      return `${base} · revealing...`;
+    }
+    return `${base} · waiting for reveal`;
+  }
+
+  updateOverlayProgressText() {
+    if (
+      !this.overlayEl ||
+      this.overlayEl.classList.contains("hidden") ||
+      !this.overlaySubtextEl
+    ) {
+      return;
+    }
+    const text = this.getOverlayProgressText();
+    if (text) {
+      this.overlaySubtextEl.textContent = text;
+    }
+  }
+
+  markSelectedAnswer(answer) {
+    this.selectedAnswer = answer;
+    this.answerButtons.forEach((btn) => {
+      btn.classList.remove("correct", "incorrect", "inactive");
+      if (btn.dataset.answerValue === answer) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+  }
+
+  resetAnswerButtons() {
+    this.answerButtons.forEach((btn) => {
+      btn.classList.remove("selected", "correct", "incorrect", "inactive");
+    });
+  }
+
+  highlightAnswers(correctAnswer) {
+    if (!correctAnswer) return;
+    this.answerButtons.forEach((btn) => {
+      btn.classList.remove("correct", "incorrect", "inactive");
+      if (btn.dataset.answerValue === correctAnswer) {
+        btn.classList.add("correct");
+      } else if (btn.classList.contains("selected")) {
+        btn.classList.add("incorrect");
+      } else {
+        btn.classList.add("inactive");
+      }
+    });
+  }
+
+  onAnswerRevealed(data) {
+    this.clearCountdownBar();
+    this.hideSubmissionOverlay();
+    const correctAnswer = data?.correct_answer;
+    if (correctAnswer) {
+      this.highlightAnswers(correctAnswer);
+      this.setStatusBanner(`Correct answer: ${correctAnswer}`, "success");
+    }
+    this.showRevealFeedback(data);
+  }
+
+  showRevealFeedback(data) {
+    const feedbackDiv = document.getElementById("answer-feedback");
+    const messageDiv = document.getElementById("feedback-message");
+    const pointsDiv = document.getElementById("points-earned");
+    if (!feedbackDiv || !messageDiv || !pointsDiv) return;
+
+    messageDiv.textContent = `Correct answer: "${data?.correct_answer || "??"}"`;
+    messageDiv.className = "reveal-feedback";
+
+    if (data?.stats?.is_poll && data.stats.poll_winner) {
+      const winner = data.stats.poll_winner;
+      pointsDiv.textContent = `${winner.name} +${winner.points_earned} pts`;
+    } else {
+      pointsDiv.textContent = "Next question is loading...";
+    }
+
+    feedbackDiv.classList.remove("hidden");
   }
 
   showFinalResults(summary) {
+    this.clearTimer();
+    this.hideSubmissionOverlay();
     app.hide("question-screen");
-    app.hide("waiting-next");
     app.show("final-results");
 
     // Find this player's final position

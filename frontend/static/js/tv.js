@@ -74,9 +74,10 @@ class TVSpectator {
     this.socket.on("all_players_answered", (data) => {
       console.log("All players answered:", data);
       this.setStatusBanner(
-        "All players answered! Next question loading...",
+        "All players answered! Revealing answer in 5 seconds...",
         ""
       );
+      this.showCountdownBar(5000); // 5 second countdown
     });
 
     this.socket.on("answer_revealed", (data) => {
@@ -128,7 +129,7 @@ class TVSpectator {
       const response = await fetch(`/api/game/stats/${this.roomCode}`);
       const data = await response.json();
 
-      if (data.success) {
+      if (data && typeof data === "object") {
         this.updateGameStats(data);
       }
     } catch (error) {
@@ -439,6 +440,8 @@ class TVSpectator {
     this.setStatusBanner("");
   }
 
+
+
   show(elementId) {
     const element = document.getElementById(elementId);
     if (element) {
@@ -451,6 +454,33 @@ class TVSpectator {
     if (element) {
       element.classList.add("hidden");
     }
+  }
+
+  showCountdownBar(duration) {
+    // Create countdown progress bar
+    let bar = document.getElementById("countdown-bar");
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.id = "countdown-bar";
+      bar.className = "countdown-bar";
+      document.body.appendChild(bar);
+    }
+    
+    // Reset and animate
+    bar.style.width = "100%";
+    bar.style.transition = "none";
+    
+    setTimeout(() => {
+      bar.style.transition = `width ${duration}ms linear`;
+      bar.style.width = "0%";
+    }, 50);
+    
+    // Remove after animation
+    setTimeout(() => {
+      if (bar && bar.parentNode) {
+        bar.parentNode.removeChild(bar);
+      }
+    }, duration + 100);
   }
 }
 

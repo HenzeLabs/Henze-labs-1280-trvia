@@ -16,6 +16,8 @@ class Config:
     # Game settings
     QUESTION_TIME_LIMIT = 30  # seconds
     MAX_PLAYERS = 10
+    AUTO_REVEAL_DELAY = int(os.environ.get('AUTO_REVEAL_DELAY', 5))
+    AUTO_REVEAL_DISPLAY_TIME = int(os.environ.get('AUTO_REVEAL_DISPLAY_TIME', 3))
     
     # Chat parsing settings
     TARGET_CHATS = [
