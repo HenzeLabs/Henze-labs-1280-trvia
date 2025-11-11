@@ -551,48 +551,48 @@ def on_join_game(data):
         except ValueError as e:
             emit('join_error', {'message': f'Invalid player name: {str(e)}'})
             return
-    
-    if not room_code or not player_name:
-        emit('join_error', {'message': 'Room code and player name are required'})
-        return
-    
-    player_id, error_message = game_engine.join_session(room_code, player_name)
 
-    if player_id:
-        session = game_engine.get_session(room_code)
+        if not room_code or not player_name:
+            emit('join_error', {'message': 'Room code and player name are required'})
+            return
 
-        # Bind this socket session to the player_id for authentication
-        game_engine.bind_socket_to_player(request.sid, player_id)
+        player_id, error_message = game_engine.join_session(room_code, player_name)
 
-        # Join the socket room
-        join_room(room_code)
-        
-        # Emit success to the player
-        emit('joined_game', {
-            'player_id': player_id,
-            'room_code': room_code,
-            'player_name': player_name,
-            'is_creator': session.creator_player_id == player_id if session else False
-        })
-        
-        # Update all clients with new player list
-        if session:
-            player_list = _build_player_list(session)
-            
-            socketio.emit('player_joined', {
-                'player_name': player_name,
+        if player_id:
+            session = game_engine.get_session(room_code)
+
+            # Bind this socket session to the player_id for authentication
+            game_engine.bind_socket_to_player(request.sid, player_id)
+
+            # Join the socket room
+            join_room(room_code)
+
+            # Emit success to the player
+            emit('joined_game', {
                 'player_id': player_id,
-                'total_players': len(player_list)
-            }, room=room_code)
-            
-            socketio.emit('player_list_updated', {
-                'players': player_list,
-                'total_players': len(player_list)
-            }, room=room_code)
-        
-        log_event("socket_player_joined", room_code=room_code, player_id=player_id, player_name=player_name)
-    else:
-        emit('join_error', {'message': error_message or 'Could not join game. Check room code and try again.'})
+                'room_code': room_code,
+                'player_name': player_name,
+                'is_creator': session.creator_player_id == player_id if session else False
+            })
+
+            # Update all clients with new player list
+            if session:
+                player_list = _build_player_list(session)
+
+                socketio.emit('player_joined', {
+                    'player_name': player_name,
+                    'player_id': player_id,
+                    'total_players': len(player_list)
+                }, room=room_code)
+
+                socketio.emit('player_list_updated', {
+                    'players': player_list,
+                    'total_players': len(player_list)
+                }, room=room_code)
+
+            log_event("socket_player_joined", room_code=room_code, player_id=player_id, player_name=player_name)
+        else:
+            emit('join_error', {'message': error_message or 'Could not join game. Check room code and try again.'})
     except Exception as e:
         emit('join_error', {'message': f'Failed to join game: {str(e)}'})
         log_event("socket_join_game_failed", error=str(e))
