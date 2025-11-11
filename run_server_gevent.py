@@ -28,12 +28,13 @@ if __name__ == "__main__":
     print(f"🚀 Starting Flask-SocketIO server on http://localhost:{port} ...")
     print("   (Using gevent async mode)")
 
-    # Force gevent async mode
+    # Run with gevent async mode (set in SocketIO initialization)
+    # IMPORTANT: debug=False and use_reloader=False to prevent Flask reloader issues
     socketio.run(
         app,
         host="0.0.0.0",
         port=port,
-        debug=True,
-        async_mode="gevent",
+        debug=False,
+        use_reloader=False,  # Reloader breaks gevent greenlets
         log_output=True
     )

@@ -5,7 +5,8 @@ from flask_socketio import SocketIO
 from .config import Config
 
 # Initialize SocketIO
-socketio = SocketIO(cors_allowed_origins="*")
+# async_mode='gevent' for Python 3.14+ compatibility (eventlet is broken)
+socketio = SocketIO(cors_allowed_origins="*", async_mode='gevent')
 
 def create_app(config_class=Config):
     """Create and configure the Flask application."""
