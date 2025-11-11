@@ -56,6 +56,41 @@ class Config:
     # Auto-Reveal Configuration
     ALLOWED_AUTOREVEAL_PHASES = ("question", "poll")  # Phases that trigger auto-reveal
 
+    @classmethod
+    def validate(cls):
+        """Validate configuration values to prevent runtime errors."""
+        errors = []
+
+        # Validate positive integers
+        if cls.QUESTION_TIME_LIMIT <= 0:
+            errors.append(f"QUESTION_TIME_LIMIT must be > 0, got {cls.QUESTION_TIME_LIMIT}")
+        if cls.MAX_PLAYERS <= 0:
+            errors.append(f"MAX_PLAYERS must be > 0, got {cls.MAX_PLAYERS}")
+        if cls.AUTO_REVEAL_DELAY < 0:
+            errors.append(f"AUTO_REVEAL_DELAY must be >= 0, got {cls.AUTO_REVEAL_DELAY}")
+        if cls.AUTO_REVEAL_DISPLAY_TIME < 0:
+            errors.append(f"AUTO_REVEAL_DISPLAY_TIME must be >= 0, got {cls.AUTO_REVEAL_DISPLAY_TIME}")
+
+        # Validate ratios sum to 1.0 (or close to it)
+        ratio_sum = cls.ROAST_QUESTION_RATIO + cls.RECEIPT_QUESTION_RATIO + cls.NORMAL_TRIVIA_RATIO
+        if not (0.99 <= ratio_sum <= 1.01):
+            errors.append(f"Question ratios must sum to 1.0, got {ratio_sum:.2f}")
+
+        # Validate individual ratios are between 0 and 1
+        for ratio_name in ['ROAST_QUESTION_RATIO', 'RECEIPT_QUESTION_RATIO', 'NORMAL_TRIVIA_RATIO']:
+            ratio_value = getattr(cls, ratio_name)
+            if not (0 <= ratio_value <= 1):
+                errors.append(f"{ratio_name} must be between 0 and 1, got {ratio_value}")
+
+        # Validate SECRET_KEY is changed in production
+        if not cls.DEBUG and cls.SECRET_KEY == 'your-secret-key-here-change-in-production':
+            errors.append("SECRET_KEY must be changed in production!")
+
+        if errors:
+            raise ValueError("Configuration validation failed:\n" + "\n".join(f"  - {err}" for err in errors))
+
+        return True
+
 class DevelopmentConfig(Config):
     """Development configuration."""
     DEBUG = True

@@ -434,9 +434,8 @@ def submit_answer():
             # 🚀 AUTO-ADVANCE: Check if all players have answered
             # Use centralized phase list to ensure auto-reveal works for all question types
             if session.phase in current_app.config['ALLOWED_AUTOREVEAL_PHASES'] and game_engine.all_players_answered(room_code):
-                # Prevent duplicate auto-advance tasks
-                if not session.auto_advance_pending:
-                    session.auto_advance_pending = True
+                # Atomically check and set auto_advance_pending flag (thread-safe)
+                if game_engine.try_start_auto_advance(room_code):
                     log_event("all_players_answered", room_code=room_code)
 
                     # Start auto-advance as a SocketIO background task
@@ -714,6 +713,9 @@ def on_join_game(data):
     if player_id:
         session = game_engine.get_session(room_code)
 
+        # Bind this socket session to the player_id for authentication
+        game_engine.bind_socket_to_player(request.sid, player_id)
+
         # Join the socket room
         join_room(room_code)
         
@@ -749,11 +751,17 @@ def on_submit_answer(data):
     """Handle player submitting answer via socket."""
     player_id = data.get('player_id')
     answer = data.get('answer', '').strip()
-    
+
     if not player_id or not answer:
         emit('answer_error', {'message': 'Player ID and answer are required'})
         return
-    
+
+    # SECURITY: Verify that this socket session owns the claimed player_id
+    if not game_engine.verify_socket_owns_player(request.sid, player_id):
+        emit('answer_error', {'message': 'Authentication failed: Invalid player session'})
+        log_event("auth_failure", player_id=player_id, socket_id=request.sid)
+        return
+
     result = game_engine.submit_answer(player_id, answer)
     
     if result.get('success'):
@@ -816,6 +824,18 @@ def on_leave_room(data):
     room_code = data.get('room_code')
     if room_code:
         leave_room(room_code)
+
+@socketio.on('disconnect')
+def on_disconnect():
+    """Handle socket disconnection - clean up socket bindings."""
+    socket_id = request.sid
+    player_id = game_engine.unbind_socket(socket_id)
+
+    if player_id:
+        log_event("socket_disconnected", socket_id=socket_id, player_id=player_id)
+        # Note: We don't remove the player from the game session here
+        # This allows them to reconnect and resume playing
+        # Session cleanup will happen via TTL mechanism
 
 @socketio.on('ping')
 def handle_ping():

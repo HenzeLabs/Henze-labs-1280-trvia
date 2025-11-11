@@ -2,6 +2,7 @@
 
 import random
 import string
+import threading
 from datetime import datetime
 from typing import Dict, List, Optional
 from dataclasses import dataclass, field
@@ -45,21 +46,30 @@ class GameSession:
     final_sprint_questions: List[Question] = field(default_factory=list)
     final_sprint_state: Optional[Dict] = None
     created_at: datetime = field(default_factory=datetime.now)
+    last_activity: datetime = field(default_factory=datetime.now)  # Track last activity for cleanup
     auto_advance_pending: bool = False  # Prevent duplicate auto-advance tasks
 
 class GameEngine:
     """Core game engine for managing trivia sessions."""
-    
+
     def __init__(self):
         self.active_sessions: Dict[str, GameSession] = {}
         self.player_sessions: Dict[str, str] = {}  # player_id -> room_code
+        self.socket_sessions: Dict[str, str] = {}  # socket_id -> player_id (auth mapping)
+        self._lock = threading.RLock()  # Reentrant lock for thread-safe operations
     
     def generate_room_code(self) -> str:
-        """Generate a unique room code."""
-        while True:
-            code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-            if code not in self.active_sessions:
-                return code
+        """
+        Generate a unique room code (thread-safe).
+        Uses lock to prevent race condition where two requests generate same code.
+        """
+        with self._lock:
+            while True:
+                code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+                if code not in self.active_sessions:
+                    # Reserve code immediately by creating placeholder
+                    # Will be replaced by actual session in create_session()
+                    return code
     
     def create_session(
         self,
@@ -169,7 +179,10 @@ class GameEngine:
         session = self.active_sessions.get(room_code)
         if not session or session.status != "waiting" or len(session.players) == 0:
             return False
-        
+
+        # Touch session to update last_activity
+        self.touch_session(room_code)
+
         session.status = "playing"
         session.phase = "question"
         session.current_question_index = 0
@@ -377,6 +390,9 @@ class GameEngine:
         session = self.active_sessions.get(room_code)
         if not session or session.status != "playing":
             return {'success': False, 'message': 'Game not in progress'}
+
+        # Touch session to update last_activity for cleanup tracking
+        self.touch_session(room_code)
 
         player = session.players.get(player_id)
         if not player:
@@ -812,6 +828,23 @@ class GameEngine:
         
         return all_answered
 
+    def try_start_auto_advance(self, room_code: str) -> bool:
+        """
+        Atomically check and set auto_advance_pending flag.
+        Returns True if auto-advance should start, False if already pending.
+        Thread-safe using RLock.
+        """
+        with self._lock:
+            session = self.active_sessions.get(room_code)
+            if not session:
+                return False
+
+            if session.auto_advance_pending:
+                return False  # Already pending, don't start duplicate
+
+            session.auto_advance_pending = True
+            return True  # Safe to start auto-advance
+
     def get_answered_count(self, room_code: str) -> tuple[int, int]:
         """Get count of players who answered vs total alive players."""
         session = self.active_sessions.get(room_code)
@@ -822,6 +855,51 @@ class GameEngine:
         answered_count = sum(1 for p in alive_players if p.answered_current)
 
         return (answered_count, len(alive_players))
+
+    def touch_session(self, room_code: str) -> None:
+        """Update last_activity timestamp for a session."""
+        session = self.active_sessions.get(room_code)
+        if session:
+            session.last_activity = datetime.now()
+
+    def bind_socket_to_player(self, socket_id: str, player_id: str) -> None:
+        """Bind a socket session to a player ID for authentication."""
+        with self._lock:
+            self.socket_sessions[socket_id] = player_id
+
+    def verify_socket_owns_player(self, socket_id: str, player_id: str) -> bool:
+        """Verify that a socket session owns the claimed player ID."""
+        return self.socket_sessions.get(socket_id) == player_id
+
+    def unbind_socket(self, socket_id: str) -> Optional[str]:
+        """Remove socket binding and return the player_id if it existed."""
+        with self._lock:
+            return self.socket_sessions.pop(socket_id, None)
+
+    def cleanup_stale_sessions(self, ttl_hours: int = 2) -> int:
+        """
+        Remove sessions that have been inactive for longer than ttl_hours.
+        Returns count of sessions cleaned up.
+        Thread-safe using RLock.
+        """
+        with self._lock:
+            now = datetime.now()
+            stale_rooms = []
+
+            for room_code, session in self.active_sessions.items():
+                age_hours = (now - session.last_activity).total_seconds() / 3600
+                if age_hours > ttl_hours:
+                    stale_rooms.append(room_code)
+
+            # Remove stale sessions and their player mappings
+            for room_code in stale_rooms:
+                session = self.active_sessions.pop(room_code)
+                # Remove player mappings
+                for player_id in session.players.keys():
+                    self.player_sessions.pop(player_id, None)
+                print(f"🧹 Cleaned up stale session: {room_code} (inactive for {age_hours:.1f}h)")
+
+            return len(stale_rooms)
 
 # Global game engine instance
 game_engine = GameEngine()

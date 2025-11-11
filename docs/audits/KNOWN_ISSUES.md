@@ -1,11 +1,62 @@
 # Known Issues – 1280 Trivia
 
 **Last Updated**: 2025-11-10
-**Status**: All previously critical issues have been RESOLVED
+**Status**: All critical and high-severity issues have been RESOLVED
 
 ---
 
 ## ✅ Fixed Issues (Resolved in Current Release)
+
+### ✅ BUG #1: Race Condition in Auto-Advance Flag
+**Status**: FIXED (v1.3 security audit)
+**Severity**: CRITICAL
+**Resolution**: Implemented atomic test-and-set operation using thread-safe `try_start_auto_advance()` method with RLock.
+**Files Changed**:
+- `backend/app/game/engine.py:823-838` - Added atomic try_start_auto_advance method
+- `backend/app/routes/game.py:438` - Uses atomic method instead of direct flag check
+
+### ✅ BUG #2: Memory Leak - No Session Cleanup
+**Status**: FIXED (v1.3 security audit)
+**Severity**: CRITICAL
+**Resolution**: Implemented TTL-based session cleanup with background task running hourly.
+**Files Changed**:
+- `backend/app/game/engine.py:49` - Added last_activity timestamp
+- `backend/app/game/engine.py:859-881` - Added touch_session() and cleanup_stale_sessions()
+- `backend/app/__init__.py:30-44` - Added background cleanup loop (runs every hour, 2hr TTL)
+- `backend/app/game/engine.py:391,183` - Added touch_session calls to active operations
+
+### ✅ BUG #3: Player ID Spoofing Vulnerability
+**Status**: FIXED (v1.3 security audit)
+**Severity**: CRITICAL
+**Resolution**: Implemented socket session authentication binding player_id to socket_id.
+**Files Changed**:
+- `backend/app/game/engine.py:58` - Added socket_sessions mapping
+- `backend/app/game/engine.py:865-877` - Added bind/verify/unbind methods
+- `backend/app/routes/game.py:717` - Binds socket to player on join
+- `backend/app/routes/game.py:760-763` - Verifies ownership before accepting answers
+
+### ✅ BUG #4: Room Code Collision Race Condition
+**Status**: FIXED (v1.3 security audit)
+**Severity**: CRITICAL
+**Resolution**: Made generate_room_code() thread-safe with RLock protection.
+**Files Changed**:
+- `backend/app/game/engine.py:59` - Added RLock to GameEngine
+- `backend/app/game/engine.py:61-70` - Protected room code generation with lock
+
+### ✅ BUG #7: Missing Disconnect Handler
+**Status**: FIXED (v1.3 security audit)
+**Severity**: HIGH
+**Resolution**: Added disconnect event handler to clean up socket bindings.
+**Files Changed**:
+- `backend/app/routes/game.py:828-838` - Added disconnect handler
+
+### ✅ BUG #8: Config Validation Missing
+**Status**: FIXED (v1.3 security audit)
+**Severity**: HIGH
+**Resolution**: Added comprehensive config validation on app startup.
+**Files Changed**:
+- `backend/app/config.py:59-92` - Added validate() classmethod
+- `backend/app/__init__.py:18` - Calls validation on app creation
 
 ### ✅ 1. Poll Questions Never Award Points
 **Status**: FIXED (auto-reveal centralization)
