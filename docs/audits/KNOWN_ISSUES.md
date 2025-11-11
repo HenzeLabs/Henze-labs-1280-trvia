@@ -58,6 +58,27 @@
 - `backend/app/config.py:59-92` - Added validate() classmethod
 - `backend/app/__init__.py:18` - Calls validation on app creation
 
+### ✅ BUG #9: Timer Starts Before Question Renders
+**Status**: FIXED (v1.3.1 medium priority fixes)
+**Severity**: MEDIUM
+**Resolution**: Reordered UI update and timer initialization to show screen first.
+**Files Changed**:
+- `frontend/static/js/player.js:459-465` - Show UI before starting timer
+
+### ✅ BUG #12: Question Generator Exhaustion
+**Status**: FIXED (v1.3.1 medium priority fixes)
+**Severity**: MEDIUM
+**Resolution**: Added validation to require minimum 3 questions before creating game.
+**Files Changed**:
+- `backend/app/routes/game.py:616-620` - Validate question count before session creation
+
+### ✅ BUG #13: Hardcoded IP Address in Server
+**Status**: FIXED (v1.3.1 medium priority fixes)
+**Severity**: MEDIUM
+**Resolution**: Dynamically detect local IP address on server startup.
+**Files Changed**:
+- `run_server.py:35-51` - Added get_local_ip() function
+
 ### ✅ 1. Poll Questions Never Award Points
 **Status**: FIXED (auto-reveal centralization)
 **Fixed In**: v1.2 technical audit
@@ -112,9 +133,27 @@
 
 ---
 
-## Medium Priority Issues
+## Medium Priority Issues (Not Yet Fixed)
 
-### 8. TV Reconnect During Reveal Causes Desync
+### BUG #5: Player Joins After Game Started
+**Status**: ✅ ALREADY PROTECTED
+**Notes**: Backend prevents joins when `session.status != "waiting"` (engine.py:144-146)
+
+### BUG #6: Zero Players Can Start Game
+**Status**: ✅ ALREADY PROTECTED
+**Notes**: Backend checks `len(session.players) == 0` and returns False (engine.py:180)
+
+### BUG #10: Poll Questions With Zero Votes
+**Status**: ✅ ALREADY PROTECTED
+**Notes**: Poll scoring handles zero votes gracefully (no division by zero)
+
+### BUG #11: Final Sprint Tie Not Handled
+**Status**: 🟠 MEDIUM
+**Root Cause**: Leaderboard doesn't specify tie-breaking rules for final sprint.
+**Impact**: Multiple players can tie for 1st place - unclear who wins.
+**Fix**: Add tie-breaker logic (e.g., fastest total time, or shared victory).
+
+### BUG #16: TV Reconnect During Reveal Causes Desync
 **Status**: 🟠 MEDIUM
 **Root Cause**: WebSocket reconnect doesn't re-fetch reveal state; TV shows loading indefinitely.
 **Impact**: Host must refresh page if they lose connection during answer reveal.
@@ -130,13 +169,37 @@
 
 ## Low Priority Issues
 
-### 10. Minigame Legacy Listeners in tv.js/player.js
+### BUG #14: Player Name Emoji Handling
+**Status**: 🟢 LOW
+**Root Cause**: HTML escaping may not properly handle all emoji/unicode edge cases.
+**Impact**: Rare display issues with complex emoji in player names.
+**Fix**: Add comprehensive unicode normalization.
+
+### BUG #15: Missing Error Handling in Socket Events
+**Status**: 🟢 LOW
+**Root Cause**: Some socket event handlers lack try/catch blocks.
+**Impact**: Uncaught exceptions could crash socket handler.
+**Fix**: Wrap all socket handlers with error boundaries.
+
+### BUG #17: Countdown Bar Not Cleared on Error
+**Status**: 🟢 LOW
+**Root Cause**: Timer UI state not reset when errors occur.
+**Impact**: Visual bug - timer keeps running after error.
+**Fix**: Add timer cleanup to error handlers.
+
+### BUG #18: Missing Test IDs in TV View
+**Status**: 🟢 LOW
+**Root Cause**: TV view lacks data-testid attributes for automated testing.
+**Impact**: Harder to write reliable E2E tests.
+**Fix**: Add data-testid attributes to key TV elements.
+
+### Minigame Legacy Listeners in tv.js/player.js
 **Status**: 🟢 LOW
 **Root Cause**: Socket handlers for `minigame_start`, `minigame_result` exist but are never triggered.
 **Impact**: Dead code; no functional impact.
 **Fix**: Remove or document as future feature.
 
-### 11. Manual Reveal Route Unused but Exposed
+### Manual Reveal Route Unused but Exposed
 **Status**: 🟢 LOW
 **Root Cause**: `/api/game/reveal/<room_code>` endpoint exists but auto-reveal removed all calls to it.
 **Impact**: Exposed API surface; no security risk but confusing.

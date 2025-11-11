@@ -613,6 +613,12 @@ def on_create_room(data):
         # Generate questions (no sprint questions for simpler gameplay)
         questions = question_manager.generate_question_set(sample_messages, num_questions=10)
 
+        # Validate we got enough questions (BUG #12: prevent generator exhaustion)
+        if len(questions) < 3:
+            emit('error', {'message': 'Not enough questions available. Need at least 3 questions to start.'})
+            log_event("socket_room_create_failed", error="Insufficient questions generated")
+            return
+
         # Create game session (no creator player, no sprint questions)
         room_code = game_engine.create_session(questions, sprint_questions=None)
 

@@ -5,6 +5,7 @@ Run the 1280 Trivia Flask-SocketIO server.
 
 import sys
 import logging
+import socket
 from pathlib import Path
 
 # Add the backend directory to the Python path
@@ -30,9 +31,24 @@ if __name__ == '__main__':
         logging.warning("⚠️  Set use_reloader=False or auto-reveal will fail.")
         raise RuntimeError("use_reloader=True is incompatible with auto-reveal background tasks")
 
+    # Get local IP dynamically (fixes BUG #13: hardcoded IP)
+    def get_local_ip():
+        """Get the local IP address for network access."""
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            local_ip = s.getsockname()[0]
+            s.close()
+            return local_ip
+        except Exception:
+            return "localhost"
+
+    local_ip = get_local_ip()
+    port = 5001
+
     print("🚀 Starting 1280 Trivia server...")
-    print("🌐 Open your browser to: http://192.168.1.159:5001")
-    print("📱 Players can join on their phones at: http://192.168.1.159:5001/join")
+    print(f"🌐 Open your browser to: http://{local_ip}:{port}")
+    print(f"📱 Players can join on their phones at: http://{local_ip}:{port}/join")
     print("\n✅ Auto-reveal background tasks: ENABLED")
     print("   (use_reloader=False allows greenlet survival)")
     print("\n🎯 Press Ctrl+C to stop the server")

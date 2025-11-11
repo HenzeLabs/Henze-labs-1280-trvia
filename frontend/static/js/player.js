@@ -455,11 +455,14 @@ class PlayerDashboard {
     });
 
     this.timeRemaining = question.time_remaining || 30;
-    this.startTimer();
 
+    // Show UI first, then start timer to prevent race condition
     app.show("question-screen");
     this.hideSubmissionOverlay();
     app.hide("answer-feedback");
+
+    // Start timer after UI renders (fixes BUG #9: timer starts before render)
+    this.startTimer();
   }
 
   startTimer() {
