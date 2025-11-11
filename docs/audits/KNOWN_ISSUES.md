@@ -7,6 +7,45 @@
 
 ## ✅ Fixed Issues (Resolved in Current Release)
 
+### 🔒 SECURITY AUDIT v2 (Fresh Eyes Audit - v1.5)
+
+### ✅ SECURITY BUG #1: Host Controls Lack Authorization
+**Status**: FIXED (v1.5 security audit)
+**Severity**: HIGH
+**Resolution**: Added host verification to start_game requiring authenticated player_id.
+**Files Changed**:
+- `backend/app/game/engine.py:178-183` - Added verify_host() method
+- `backend/app/game/engine.py:185-200` - start_game() now requires host_player_id
+- `backend/app/routes/game.py:611-617` - Socket handler verifies requester
+
+### ✅ SECURITY BUG #2: HTTP Answer Endpoint Allows Player Spoofing
+**Status**: FIXED (v1.5 security audit)
+**Severity**: CRITICAL
+**Resolution**: Disabled unauthenticated HTTP answer endpoint entirely. Answers must use authenticated WebSocket.
+**Files Changed**:
+- `backend/app/routes/game.py:333-344` - Endpoint returns 410 Gone
+
+### ✅ SECURITY BUG #3: Socket Join Bypasses Validation → XSS
+**Status**: FIXED (v1.5 security audit)
+**Severity**: HIGH
+**Resolution**: Added APIValidator.validate_player_name() to socket join_game handler.
+**Files Changed**:
+- `backend/app/routes/game.py:680-685` - Validate and sanitize player names on socket path
+
+### ✅ SECURITY BUG #4: Host Question Endpoint Leaks Correct Answers
+**Status**: FIXED (v1.5 security audit)
+**Severity**: HIGH
+**Resolution**: Disabled unauthenticated host endpoint that leaked answers.
+**Files Changed**:
+- `backend/app/routes/game.py:318-330` - Endpoint returns 410 Gone
+
+### ✅ SECURITY BUG #5: request_game_state Broadcasts Cross-Room Data
+**Status**: FIXED (v1.5 security audit)
+**Severity**: MEDIUM
+**Resolution**: Added room membership verification and scoped emit to requester only.
+**Files Changed**:
+- `backend/app/routes/game.py:834-851` - Verify requester is in room, use emit() not broadcast
+
 ### ✅ BUG #1: Race Condition in Auto-Advance Flag
 **Status**: FIXED (v1.3 security audit)
 **Severity**: CRITICAL

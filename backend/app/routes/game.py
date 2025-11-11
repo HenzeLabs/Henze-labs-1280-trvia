@@ -317,38 +317,32 @@ def get_current_question(room_code):
 
 @bp.route('/question/<room_code>/host')
 def get_current_question_host(room_code):
-    """Get the current question for a room (includes answer for TV view)."""
-    question = game_engine.get_current_question(room_code, include_answer=True)
-
-    if question:
-        return jsonify({'success': True, 'question': question})
-    else:
-        return jsonify({
-            'success': False,
-            'message': 'No current question available'
-        }), 404
+    """
+    DEPRECATED: Host question endpoint disabled for security (BUG #4).
+    This endpoint leaked correct answers to anyone who knew the room code.
+    Use WebSocket events which have proper authentication.
+    """
+    return jsonify({
+        'success': False,
+        'message': 'Host endpoint disabled for security. Use WebSocket connection.',
+        'error_code': 'ENDPOINT_DISABLED',
+        'hint': 'TV view receives questions via question_started socket event'
+    }), 410  # 410 Gone
 
 # Manual reveal route removed - auto-reveal is now mandatory
 
 @bp.route('/answer', methods=['POST'])
 def submit_answer():
-    """Submit an answer for a player."""
-    data = request.get_json()
-    
-    # 🔒 API Contract Validation
-    try:
-        player_id = APIValidator.validate_player_id(data.get('player_id', ''))
-        answer = data.get('answer', '').strip()
-        if not answer:
-            raise ValueError("Answer cannot be empty")
-    except ValueError as e:
-        return jsonify({
-            'success': False,
-            'message': str(e),
-            'error_code': 'INVALID_PAYLOAD'
-        }), 400
-    
-    result = game_engine.submit_answer(player_id, answer)
+    """
+    DEPRECATED: HTTP answer submission disabled for security (BUG #2).
+    Players must use WebSocket submit_answer which has proper authentication.
+    """
+    return jsonify({
+        'success': False,
+        'message': 'HTTP answer submission disabled. Use WebSocket connection.',
+        'error_code': 'ENDPOINT_DISABLED',
+        'hint': 'Connect via Socket.IO and emit submit_answer event'
+    }), 410  # 410 Gone
     
     session = game_engine.get_player_session(player_id)
     if session:
@@ -608,7 +602,13 @@ def on_start_game(data):
             emit('error', {'message': 'No room code provided'})
             return
 
-        success = game_engine.start_game(room_code)
+        # SECURITY (BUG #1): Get player_id from socket session
+        player_id = game_engine.socket_sessions.get(request.sid)
+        if not player_id:
+            emit('error', {'message': 'Not authenticated'})
+            return
+
+        success = game_engine.start_game(room_code, host_player_id=player_id)
 
         if success:
             # Notify all players that game is starting
@@ -676,7 +676,14 @@ def on_join_game(data):
     """Handle player joining via socket."""
     try:
         room_code = data.get('room_code', '').upper()
-        player_name = data.get('player_name', '')
+        player_name_raw = data.get('player_name', '')
+
+        # SECURITY (BUG #3): Validate and sanitize player name on socket path
+        try:
+            player_name = APIValidator.validate_player_name(player_name_raw)
+        except ValueError as e:
+            emit('join_error', {'message': f'Invalid player name: {str(e)}'})
+            return
     
     if not room_code or not player_name:
         emit('join_error', {'message': 'Room code and player name are required'})
@@ -821,14 +828,23 @@ def handle_ping():
 
 @socketio.on('request_game_state')
 def handle_game_state_request(data):
-    """Send current game state to requesting client."""
+    """Send current game state to requesting client (SECURITY: BUG #5 fixed)."""
     room_code = data.get('room_code')
     if room_code:
+        # SECURITY (BUG #5): Verify requester is in the room
+        player_id = game_engine.socket_sessions.get(request.sid)
+        if player_id:
+            player_room = game_engine.player_sessions.get(player_id)
+            if player_room != room_code:
+                emit('error', {'message': 'Not authorized to view this room'})
+                return
+
         stats = game_engine.get_game_stats(room_code)
         question = game_engine.get_current_question(room_code)
         leaderboard = game_engine.get_leaderboard(room_code)
-        
-        socketio.emit('game_state_update', {
+
+        # SECURITY (BUG #5): Send only to requester, not broadcast
+        emit('game_state_update', {
             'stats': stats,
             'question': question,
             'leaderboard': leaderboard

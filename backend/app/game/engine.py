@@ -174,11 +174,29 @@ class GameEngine:
         if room_code:
             return self.active_sessions.get(room_code)
         return None
-    
-    def start_game(self, room_code: str) -> bool:
-        """Start the game for a session."""
+
+    def verify_host(self, room_code: str, player_id: str) -> bool:
+        """Verify that player_id is the host of the room (SECURITY: BUG #1)."""
+        session = self.active_sessions.get(room_code)
+        if not session:
+            return False
+        return session.creator_player_id == player_id
+
+    def start_game(self, room_code: str, host_player_id: str = None) -> bool:
+        """
+        Start the game for a session.
+
+        Args:
+            room_code: Room code
+            host_player_id: Player ID of requester (for authorization check)
+        """
         session = self.active_sessions.get(room_code)
         if not session or session.status != "waiting" or len(session.players) == 0:
+            return False
+
+        # SECURITY (BUG #1): Verify host authorization if player_id provided
+        if host_player_id and not self.verify_host(room_code, host_player_id):
+            print(f"⚠️ Unauthorized start_game attempt by {host_player_id} for room {room_code}")
             return False
 
         # Touch session to update last_activity
