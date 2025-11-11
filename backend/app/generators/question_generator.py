@@ -30,6 +30,28 @@ class ReceiptQuestionGenerator(QuestionGenerator):
             "Who's the main character that sent:"
         ]
     
+    def _sanitize_pii(self, text: str) -> str:
+        """
+        Remove PII (phone numbers, addresses, email) from message text.
+        PRIVACY FIX: Prevent exposing sensitive information in receipts.
+        """
+        import re
+
+        # Remove phone numbers (various formats)
+        text = re.sub(r'\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b', '[PHONE NUMBER]', text)
+        text = re.sub(r'\b\(\d{3}\)\s?\d{3}[-.\s]?\d{4}\b', '[PHONE NUMBER]', text)
+
+        # Remove email addresses
+        text = re.sub(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', '[EMAIL]', text)
+
+        # Remove street addresses (basic pattern)
+        text = re.sub(r'\b\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Boulevard|Blvd|Court|Ct)\b', '[ADDRESS]', text, flags=re.IGNORECASE)
+
+        # Remove zip codes
+        text = re.sub(r'\b\d{5}(?:-\d{4})?\b', '[ZIP]', text)
+
+        return text
+
     def generate_question(self, messages: List[Dict]) -> Dict:
         """Generate a savage 'who said this?' question."""
         if not messages:
@@ -57,6 +79,11 @@ class ReceiptQuestionGenerator(QuestionGenerator):
             # Skip very short messages (less than 15 chars)
             if len(text) < 15:
                 continue
+
+            # PRIVACY FIX: Skip messages that might contain PII after sanitization
+            sanitized = self._sanitize_pii(text)
+            if '[PHONE NUMBER]' in sanitized or '[EMAIL]' in sanitized or '[ADDRESS]' in sanitized:
+                continue  # Skip messages with PII entirely
 
             filtered_messages.append(msg)
 
@@ -792,10 +819,16 @@ class QuestionGeneratorManager:
             regular_trivia_count = max(1, num_questions - total_so_far)
 
         # Calculate personalized question count (if available)
+        # CONTENT FIX: Increase personalized questions to 2-3 per game (they're GOLD!)
         personalized_count = 0
-        if self.generators.get('personalized') and num_questions >= 10:
-            # For games with 10+ questions, include 1-2 personalized questions
-            personalized_count = max(1, roast_count // 2)
+        if self.generators.get('personalized') and num_questions >= 8:
+            # For games with 8+ questions, include 2-3 personalized questions
+            if num_questions >= 15:
+                personalized_count = 3  # 3 for long games
+            elif num_questions >= 10:
+                personalized_count = 2  # 2 for medium games
+            else:
+                personalized_count = 1  # 1 for short games
             roast_count = max(0, roast_count - personalized_count)
 
         print(f"🎮 Question Mix ({num_questions} total): {receipt_count} receipt, {roast_count} roast, {personalized_count} personalized, {likely_count} most likely, {sex_trivia_count} sex trivia, {regular_trivia_count} regular trivia, {poll_count} poll")
