@@ -1,76 +1,63 @@
 # Known Issues – 1280 Trivia
 
 **Last Updated**: 2025-11-10
-**Status**: Active tracking for production release
+**Status**: All previously critical issues have been RESOLVED
 
 ---
 
-## Critical Issues (Blocking Production)
+## ✅ Fixed Issues (Resolved in Current Release)
 
-### 1. Poll Questions Never Award Points
-**Status**: 🔴 CRITICAL
-**Root Cause**: Poll scoring logic (`backend/app/game/engine.py:255-339`) only executes in `/api/game/reveal/<room_code>` endpoint, but auto-reveal flow bypasses this route.
-**Impact**: Players never receive points for poll questions; affects ~25% of question pool.
-**Fix**: Move poll vote-counting logic into auto-advance path OR restore manual reveal button with auto-trigger.
-**Files**:
-- `backend/app/game/engine.py:255-339` (get_answer_stats)
-- `backend/app/routes/game.py:243-258` (reveal endpoint)
+### ✅ 1. Poll Questions Never Award Points
+**Status**: FIXED (auto-reveal centralization)
+**Fixed In**: v1.2 technical audit
+**Resolution**: Auto-reveal now uses centralized `ALLOWED_AUTOREVEAL_PHASES` config that includes "poll" phase, ensuring poll scoring works correctly.
+**Files Changed**:
+- `backend/app/config.py:57` - Added ALLOWED_AUTOREVEAL_PHASES = ("question", "poll")
+- `backend/app/routes/game.py:436` - Uses centralized phase list
+- `backend/app/game/engine.py:702` - Uses centralized phase list
 
-### 2. Player Timers Accumulate (Multiple `setInterval`)
-**Status**: 🟡 HIGH
-**Root Cause**: `displayQuestion()` calls `this.startTimer()` without clearing previous interval (`frontend/static/js/player.js:427-449`).
-**Impact**: Countdown runs 2x-4x speed after question transitions; background `showTimeUp()` floods socket.
-**Fix**: Add `if (this.timer) clearInterval(this.timer);` before starting new timer.
-**Files**:
-- `frontend/static/js/player.js:427-449` (displayQuestion)
+### ✅ 2. Player Timers Accumulate (Multiple `setInterval`)
+**Status**: FIXED
+**Fixed In**: v1.1 (prior to audit)
+**Resolution**: Added timer cleanup logic that clears existing interval before starting new one.
+**Files Changed**:
+- `frontend/static/js/player.js:467-470` - Clears timer before starting
 
-### 3. Poll Questions Leak into Final Sprint
-**Status**: 🟡 HIGH
-**Root Cause**: Final sprint reuses `mixed` question generator which includes polls. Sprint scoring compares answers to placeholder "correct" values.
-**Impact**: Players eliminated arbitrarily based on guessing subjective polls.
-**Fix**: Filter `question_type !== 'poll'` from sprint question pool OR create dedicated sprint generator.
-**Files**:
-- `backend/app/routes/game.py:129-136` (start_game)
-- `backend/app/game/engine.py:429-520` (_handle_final_sprint_answer)
+### ✅ 3. Poll Questions Leak into Final Sprint
+**Status**: FIXED
+**Fixed In**: v1.1 (prior to audit)
+**Resolution**: Sprint question generation filters out poll, personalized_roast, and personalized_ranking questions.
+**Files Changed**:
+- `backend/app/routes/game.py:210-218` - Filters question types from sprint
 
----
+### ✅ 4. TV Progress Counter Shows 0/0
+**Status**: FIXED
+**Fixed In**: v1.1 (prior to audit)
+**Resolution**: Removed `data.success` check that was blocking stats update.
+**Files Changed**:
+- `frontend/static/js/tv.js:132` - Removed success flag check
 
-## High Priority Issues
+### ✅ 5. QR Code Script Throws Error
+**Status**: FIXED
+**Fixed In**: v1.1 (prior to audit)
+**Resolution**: Added missing `<div id="tv-qr-code">` element and changed URL to dynamic origin.
+**Files Changed**:
+- `frontend/templates/tv.html:72` - Added QR code container
+- `frontend/templates/tv.html:139` - Dynamic URL generation
 
-### 4. TV Progress Counter Shows 0/0
-**Status**: 🟡 HIGH
-**Root Cause**: `loadGameInfo()` checks `data.success` before updating (`frontend/static/js/tv.js:126-133`), but `/api/game/stats/<room_code>` returns bare object without `success` flag.
-**Impact**: Players can't see progress through game.
-**Fix**: Remove `data.success` check OR add wrapper to API response.
-**Files**:
-- `frontend/static/js/tv.js:126-133`
-- `backend/app/routes/game.py:378-382`
+### ✅ 6. Player Rank Never Shows
+**Status**: FIXED
+**Fixed In**: v1.1 (prior to audit)
+**Resolution**: `_build_player_list()` now calls `get_leaderboard()` and includes rank field in player data.
+**Files Changed**:
+- `backend/app/routes/game.py:30-44` - Includes rank in player list
 
-### 5. QR Code Script Throws Error
-**Status**: 🟡 HIGH
-**Root Cause**: Template instantiates `new QRCode(document.getElementById("tv-qr-code"))` but `<div id="tv-qr-code">` was removed. URL is hard-coded to `http://192.168.1.159:5001/join`.
-**Impact**: QR code doesn't render; wrong join URL shown.
-**Fix**: Add `<div id="tv-qr-code"></div>` AND change to `window.location.origin + "/join"`.
-**Files**:
-- `frontend/templates/tv.html:925-935`
-
-### 6. Player Rank Never Shows
-**Status**: 🟡 HIGH
-**Root Cause**: `updatePlayerInfo()` expects `player.rank` field but `player_list_updated` payload doesn't include it.
-**Impact**: Player HUD shows rank as "-" instead of actual position.
-**Fix**: Call `game_engine.get_leaderboard()` and include rank in socket payloads.
-**Files**:
-- `frontend/static/js/player.js:583-595`
-- `backend/app/routes/game.py:285-299`
-
-### 7. "Start Game" Button Hidden for Mobile Hosts
-**Status**: 🟡 HIGH
-**Root Cause**: Button visibility gated on `sessionStorage.is_creator` but room creation flow never sets this key.
-**Impact**: Player who creates game on phone can't start it.
-**Fix**: Set `sessionStorage.is_creator = 'true'` when player creates room.
-**Files**:
-- `frontend/static/js/player.js:15`
-- `frontend/templates/index.html:42-66`
+### ✅ 7. "Start Game" Button Hidden for Mobile Hosts
+**Status**: FIXED
+**Fixed In**: v1.1 (prior to audit)
+**Resolution**: Join flow sets `sessionStorage.is_creator` when first player joins.
+**Files Changed**:
+- `frontend/static/js/join.js:79` - Sets is_creator flag
 
 ---
 
