@@ -689,11 +689,22 @@ class GameEngine:
             copied['correct_answer'] = payload['correct_answer']
         return copied
     
-    def next_question(self, room_code: str) -> Dict:
-        """Advance the game state when the host requests the next step."""
+    def next_question(self, room_code: str, host_player_id: str = None) -> Dict:
+        """
+        Advance the game state when the host requests the next step.
+
+        Args:
+            room_code: Room code
+            host_player_id: Player ID of requester (for authorization check)
+        """
         session = self.active_sessions.get(room_code)
         if not session or session.status != "playing":
             return {'type': 'error', 'message': 'Game not in progress'}
+
+        # SECURITY (BUG #1 extension): Verify host authorization if player_id provided
+        if host_player_id and not self.verify_host(room_code, host_player_id):
+            print(f"⚠️ Unauthorized next_question attempt by {host_player_id} for room {room_code}")
+            return {'type': 'error', 'message': 'Not authorized'}
 
         if session.phase == "minigame":
             return {'type': 'minigame_in_progress'}

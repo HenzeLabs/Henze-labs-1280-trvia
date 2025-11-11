@@ -10,13 +10,17 @@
 ### 🔒 SECURITY AUDIT v2 (Fresh Eyes Audit - v1.5)
 
 ### ✅ SECURITY BUG #1: Host Controls Lack Authorization
-**Status**: FIXED (v1.5 security audit)
+**Status**: FIXED (v1.5 security audit + v1.5.1 hardening)
 **Severity**: HIGH
-**Resolution**: Added host verification to start_game requiring authenticated player_id.
+**Resolution**: Complete authorization enforcement across all game control paths (start/next).
 **Files Changed**:
 - `backend/app/game/engine.py:178-183` - Added verify_host() method
-- `backend/app/game/engine.py:185-200` - start_game() now requires host_player_id
-- `backend/app/routes/game.py:611-617` - Socket handler verifies requester
+- `backend/app/game/engine.py:185-200` - start_game() requires host_player_id
+- `backend/app/game/engine.py:692-715` - next_question() requires host_player_id
+- `backend/app/routes/game.py:468-476` - Socket start_game verifies requester
+- `backend/app/routes/game.py:495-501` - Socket next_question verifies requester
+- `backend/app/routes/game.py:282-293` - HTTP /start disabled (410 Gone)
+- `backend/app/routes/game.py:368-379` - HTTP /next disabled (410 Gone)
 
 ### ✅ SECURITY BUG #2: HTTP Answer Endpoint Allows Player Spoofing
 **Status**: FIXED (v1.5 security audit)

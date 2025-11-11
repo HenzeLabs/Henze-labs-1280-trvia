@@ -281,26 +281,16 @@ def join_game():
 
 @bp.route('/start/<room_code>', methods=['POST'])
 def start_game_api(room_code):
-    """Start a game session via API (deprecated - use socket instead)."""
-    success = game_engine.start_game(room_code)
-
-    if success:
-        log_event("game_started", room_code=room_code)
-        # Notify all players that game is starting
-        socketio.emit('game_started', room=room_code)
-
-        # Send the first question immediately
-        question = game_engine.get_current_question(room_code)
-        if question:
-            socketio.emit('new_question', {'question': question}, room=room_code)
-
-        return jsonify({'success': True, 'message': 'Game started!'})
-    else:
-        log_event("game_start_failed", room_code=room_code)
-        return jsonify({
-            'success': False,
-            'message': 'Could not start game'
-        }), 400
+    """
+    DEPRECATED: HTTP start endpoint disabled for security (BUG #1 extension).
+    Host must use WebSocket start_game event with proper authentication.
+    """
+    return jsonify({
+        'success': False,
+        'message': 'HTTP start endpoint disabled. Use WebSocket connection.',
+        'error_code': 'ENDPOINT_DISABLED',
+        'hint': 'TV view should emit start_game event via Socket.IO'
+    }), 410  # 410 Gone
 
 @bp.route('/question/<room_code>')
 def get_current_question(room_code):
@@ -377,60 +367,16 @@ def get_player_session(player_id):
 
 @bp.route('/next/<room_code>', methods=['POST'])
 def next_question(room_code):
-    """Move to the next question."""
-    result = game_engine.next_question(room_code)
-
-    result_type = result.get('type')
-
-    if result_type == 'question':
-        question = result.get('question') or game_engine.get_current_question(room_code)
-        if question:
-            socketio.emit('new_question', {'question': question}, room=room_code)
-        session = game_engine.get_session(room_code)
-        if session:
-            player_list = _build_player_list(session)
-            socketio.emit('player_list_updated', {
-                'players': player_list,
-                'total_players': len(player_list)
-            }, room=room_code)
-        return jsonify({'success': True, 'message': 'Next question loaded'})
-
-    if result_type == 'final_sprint':
-        question = result.get('question') or game_engine.get_current_question(room_code)
-        socketio.emit('final_sprint_started', {
-            'question': question,
-            'positions': result.get('positions', {}),
-            'goal': result.get('goal')
-        }, room=room_code)
-        if question:
-            socketio.emit('new_question', {'question': question}, room=room_code)
-        session = game_engine.get_session(room_code)
-        if session and session.final_sprint_state:
-            positions = session.final_sprint_state.get('positions', {})
-            socketio.emit('final_sprint_update', {
-                'positions': positions,
-                'goal': session.final_sprint_state.get('goal')
-            }, room=room_code)
-        return jsonify({'success': True, 'final_sprint_started': True})
-
-    if result_type == 'game_finished':
-        summary = result.get('summary') or game_engine.get_session_summary(room_code)
-        socketio.emit('game_finished', {'summary': summary}, room=room_code)
-        return jsonify({'success': True, 'game_finished': True, 'summary': summary})
-
-    if result_type == 'final_sprint_in_progress':
-        return jsonify({
-            'success': False,
-            'message': 'Final sprint underway—wait for players to answer.'
-        }), 400
-
-    if result_type == 'error':
-        return jsonify({
-            'success': False,
-            'message': result.get('message', 'Could not advance game')
-        }), 400
-
-    return jsonify({'success': True, 'message': 'No further action required'})
+    """
+    DEPRECATED: HTTP next endpoint disabled for security (BUG #1 extension).
+    Host must use WebSocket next_question event with proper authentication.
+    """
+    return jsonify({
+        'success': False,
+        'message': 'HTTP next endpoint disabled. Use WebSocket connection.',
+        'error_code': 'ENDPOINT_DISABLED',
+        'hint': 'TV view should emit next_question event via Socket.IO'
+    }), 410  # 410 Gone
 
 # WebSocket Events
 @socketio.on('create_room')
@@ -546,7 +492,13 @@ def on_next_question(data):
         emit('error', {'message': 'No room code provided'})
         return
 
-    result = game_engine.next_question(room_code)
+    # SECURITY (BUG #1 extension): Get player_id from socket session
+    player_id = game_engine.socket_sessions.get(request.sid)
+    if not player_id:
+        emit('error', {'message': 'Not authenticated'})
+        return
+
+    result = game_engine.next_question(room_code, host_player_id=player_id)
     result_type = result.get('type')
 
     if result_type == 'question':
