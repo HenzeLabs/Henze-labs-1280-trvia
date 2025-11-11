@@ -124,6 +124,7 @@ Includes:
 - `tests/security-regression.spec.ts` - Playwright tests
 - `run-regression-tests.sh` - Test runner
 - `quick-smoke-test.sh` - Quick validation
+- `tests/v17-content-audit.spec.ts` - Automates the v1.7 content checklist (requires server running via `python3 run_server.py`)
 
 ---
 
