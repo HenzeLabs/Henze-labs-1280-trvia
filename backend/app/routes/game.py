@@ -147,6 +147,15 @@ def create_game():
     try:
         creator_name = APIValidator.validate_player_name(data.get('player_name', data.get('host_name', '')))
         num_questions = data.get('num_questions', 15)  # Default to 15 if not specified
+
+        # SECURITY (BUG #9): DoS protection - enforce strict upper limit
+        if not isinstance(num_questions, int):
+            raise ValueError("num_questions must be an integer")
+        if num_questions < 3:
+            raise ValueError("num_questions must be at least 3")
+        if num_questions > 25:
+            raise ValueError("num_questions cannot exceed 25 (DoS protection)")
+
     except ValueError as e:
         return jsonify({
             'success': False,
@@ -348,22 +357,18 @@ def get_game_stats(room_code):
 
 @bp.route('/player-session/<player_id>')
 def get_player_session(player_id):
-    """Get session info for a player."""
-    session = game_engine.get_player_session(player_id)
-    if session:
-        return jsonify({
-            'success': True,
-            'session': {
-                'room_code': session.room_code,
-                'status': session.status,
-                'player_count': len(session.players)
-            }
-        })
-    else:
-        return jsonify({
-            'success': False,
-            'message': 'Player session not found'
-        }), 404
+    """
+    DEPRECATED: Player session endpoint disabled for security (BUG #7).
+
+    This endpoint leaked room codes, enabling enumeration attacks when combined
+    with predictable player IDs. Players already receive session info via join_game.
+    """
+    return jsonify({
+        'success': False,
+        'message': 'Player session endpoint disabled for security.',
+        'error_code': 'ENDPOINT_DISABLED',
+        'hint': 'Session info is provided during join_game'
+    }), 410  # 410 Gone
 
 @bp.route('/next/<room_code>', methods=['POST'])
 def next_question(room_code):
@@ -612,11 +617,13 @@ def on_submit_answer(data):
     
     if result.get('success'):
         # Send feedback to the player
+        # SECURITY (BUG #10): Do NOT leak correct answer before reveal
+        # Only tell player if they were correct and points earned
         emit('answer_feedback', {
             'correct': result.get('is_correct', False),
             'points': result.get('points_earned', 0),
-            'total_score': result.get('total_score', 0),
-            'correct_answer': result.get('correct_answer', '')
+            'total_score': result.get('total_score', 0)
+            # 'correct_answer' removed - revealed later via answer_revealed event
         })
         
         # Notify the room about the answer
@@ -640,29 +647,17 @@ def on_submit_answer(data):
 
 @socketio.on('join_room')
 def on_join_room(data):
-    """Handle player joining a room."""
-    room_code = data.get('room_code')
-    player_id = data.get('player_id')
-    
-    log_event("socket_join_room_attempt", player_id=player_id, room_code=room_code)
-    
-    if room_code:
-        join_room(room_code)
-        log_event("socket_join_room_success", player_id=player_id, room_code=room_code)
-        
-        # Get updated player list and broadcast
-        session = game_engine.get_session(room_code)
-        if session:
-            player_list = _build_player_list(session)
-            socketio.emit('player_list_updated', {
-                'players': player_list,
-                'total_players': len(player_list)
-            }, room=room_code)
-            log_event("socket_player_list_emitted", room_code=room_code, total_players=len(player_list))
-        else:
-            log_event("socket_join_room_missing_session", room_code=room_code)
-    else:
-        log_event("socket_join_room_missing_code", player_id=player_id)
+    """
+    DEPRECATED: Direct join_room disabled for security (BUG #6).
+
+    Anonymous sockets must not be able to subscribe to arbitrary rooms.
+    Use join_game instead, which authenticates the player first.
+    """
+    emit('error', {
+        'message': 'Direct room subscription disabled. Use join_game event.',
+        'error_code': 'ENDPOINT_DISABLED'
+    })
+    log_event("socket_join_room_blocked", reason="BUG #6: anonymous subscription prevented")
 
 @socketio.on('leave_room')
 def on_leave_room(data):
@@ -690,16 +685,20 @@ def handle_ping():
 
 @socketio.on('request_game_state')
 def handle_game_state_request(data):
-    """Send current game state to requesting client (SECURITY: BUG #5 fixed)."""
+    """Send current game state to requesting client (SECURITY: BUG #5, #8 fixed)."""
     room_code = data.get('room_code')
     if room_code:
-        # SECURITY (BUG #5): Verify requester is in the room
+        # SECURITY (BUG #8): Require authenticated socket (no anonymous access)
         player_id = game_engine.socket_sessions.get(request.sid)
-        if player_id:
-            player_room = game_engine.player_sessions.get(player_id)
-            if player_room != room_code:
-                emit('error', {'message': 'Not authorized to view this room'})
-                return
+        if not player_id:
+            emit('error', {'message': 'Not authenticated. Join the game first.'})
+            return
+
+        # SECURITY (BUG #5): Verify requester is in the room
+        player_room = game_engine.player_sessions.get(player_id)
+        if player_room != room_code:
+            emit('error', {'message': 'Not authorized to view this room'})
+            return
 
         stats = game_engine.get_game_stats(room_code)
         question = game_engine.get_current_question(room_code)

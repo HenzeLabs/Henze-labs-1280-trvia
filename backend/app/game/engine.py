@@ -151,8 +151,10 @@ class GameEngine:
             print(f"[JOIN] Duplicate name '{player_name}' in room {room_code}")
             return None, "That name is already taken. Try a different one."
         
-        # Generate unique player ID
-        player_id = f"player_{len(session.players)}_{random.randint(1000, 9999)}"
+        # SECURITY (BUG #7): Generate cryptographically strong player ID (not predictable)
+        # Use UUID4 to prevent enumeration attacks
+        import uuid
+        player_id = f"player_{uuid.uuid4().hex[:16]}"
         
         player = Player(id=player_id, name=player_name)
         session.players[player_id] = player

@@ -7,6 +7,44 @@
 
 ## ✅ Fixed Issues (Resolved in Current Release)
 
+### 🔒 SECURITY AUDIT v3 (Content & Gameplay Audit - v1.6)
+
+### ✅ SECURITY BUG #6: Anonymous Sockets Can Subscribe to Any Room
+**Status**: FIXED (v1.6 security audit)
+**Severity**: HIGH
+**Resolution**: Disabled public join_room socket event entirely. Only join_game (which authenticates) can subscribe sockets to rooms.
+**Files Changed**:
+- `backend/app/routes/game.py:641-653` - join_room handler now rejects all requests
+
+### ✅ SECURITY BUG #7: Predictable Player IDs + Session API Leak
+**Status**: FIXED (v1.6 security audit)
+**Severity**: MEDIUM
+**Resolution**: Replaced predictable player_{index}_{4-digit} IDs with UUID4-based IDs. Disabled /player-session endpoint.
+**Files Changed**:
+- `backend/app/game/engine.py:154-157` - Generate cryptographically strong UUIDs
+- `backend/app/routes/game.py:349-362` - Endpoint returns 410 Gone
+
+### ✅ SECURITY BUG #8: request_game_state Returns Data to Anonymous Sockets
+**Status**: FIXED (v1.6 security audit)
+**Severity**: HIGH
+**Resolution**: Require authenticated socket binding before allowing game state access.
+**Files Changed**:
+- `backend/app/routes/game.py:680-684` - Reject anonymous requests
+
+### ✅ SECURITY BUG #9: Unbounded Question Counts Allow DoS
+**Status**: FIXED (v1.6 security audit)
+**Severity**: HIGH
+**Resolution**: Added strict input validation: 3-25 questions max, type checking.
+**Files Changed**:
+- `backend/app/routes/game.py:151-157` - Validate and cap num_questions
+
+### ✅ SECURITY BUG #10: answer_feedback Leaks Correct Answer Immediately
+**Status**: FIXED (v1.6 security audit)
+**Severity**: MEDIUM
+**Resolution**: Removed correct_answer from immediate feedback. Only revealed via answer_revealed event after timer.
+**Files Changed**:
+- `backend/app/routes/game.py:620-627` - Removed correct_answer from response
+
 ### 🔒 SECURITY AUDIT v2 (Fresh Eyes Audit - v1.5)
 
 ### ✅ SECURITY BUG #1: Host Controls Lack Authorization
